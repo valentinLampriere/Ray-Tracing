@@ -1,3 +1,6 @@
+#include <iostream>
+#include <math.h>
+#include <string>
 #ifndef VECTOR_H
 #define VECTOR_H
 using namespace std;

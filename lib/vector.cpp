@@ -1,6 +1,4 @@
-#include <iostream>
-#include <math.h>
-#include <string>
+
 #include "vector.h"
 
 using namespace std;
