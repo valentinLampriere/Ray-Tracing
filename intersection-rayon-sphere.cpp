@@ -33,9 +33,9 @@ void setColor(std::vector<unsigned char> &image, int index, int r, int g, int b,
 int main() {
 
 	std::vector<Sphere> spheres;
-	spheres.push_back(Sphere(Vector3(200, 200, 50), 25));
-	spheres.push_back(Sphere(Vector3(140, 160, 50), 15));
-	Vector3 lightPosition = Vector3(10, 25, 50);
+	spheres.push_back(Sphere(Vector3(200, 200, 100), 60));
+	spheres.push_back(Sphere(Vector3(100, 100, 100), 30));
+	Vector3 lightPosition = Vector3(0, 25, 100);
 
 	unsigned width = 256, height = 256;
 	std::vector<unsigned char> image;
@@ -54,8 +54,9 @@ int main() {
 					setColor(image, index, 127, 127, 127);
 
 					Vector3 p = Vector3(x, y, dist);
+					Vector3 dir = (lightPosition - p).normalized();
 
-					Ray _r = Ray(p, (lightPosition - p).normalized());
+					Ray _r = Ray(p + dir * -0.01f, dir);
 					for (Sphere& _aSphere : spheres) {
 						float dist_otherSphere = hit_sphere(_aSphere, _r);
 						if (dist_otherSphere >= 0) // If the ray hits another sphere
