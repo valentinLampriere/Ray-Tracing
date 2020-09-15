@@ -140,6 +140,12 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="intersection-rayon-sphere.cpp" />
+    <ClCompile Include="lib\lodepng.cpp" />
+    <ClCompile Include="lib\vector.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="lib\lodepng.h" />
+    <ClInclude Include="lib\vector.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
