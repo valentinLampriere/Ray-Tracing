@@ -11,4 +11,21 @@ void hit_sphere(Vector3 centerSphere, float radiusSphere, Vector3 startRay, Vect
 }
 
 int main() {
+
+	Vector3 sphereCenter = Vector3(0, 0, 10);
+	float	sphereRadius = 2;
+
+	float planSize = 30;
+
+	unsigned width = 256, height = 256;
+	std::vector<unsigned char> image;
+	image.resize(width * height);
+	for (unsigned x = 0; x < width; x++) {
+		for (unsigned y = 0; y < height; y++) {
+			int index = x + y * width;
+			image[index] = 255;
+		}
+	}
+
+	lodepng::encode("image.png", image, width, height);
 }
