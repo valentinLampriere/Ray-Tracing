@@ -1,6 +1,7 @@
 #include <iostream>
 #include "Sphere.h"
 #include "Ray.h"
+#include "Light.h"
 #include "lib/lodepng.h"
 
 float hit_sphere(Sphere sphere, Ray ray) {
@@ -33,7 +34,7 @@ void setColor(std::vector<unsigned char> &image, int index, int r, int g, int b,
 int main() {
 
 	std::vector<Sphere> spheres;
-	std::vector<Vector3> lightsSources;
+	std::vector<Light> lightsSources;
 
 	// ADD SPHERES
 	spheres.push_back(Sphere(Vector3(200, 200, 198), 60));
@@ -41,10 +42,9 @@ int main() {
 	spheres.push_back(Sphere(Vector3(50, 65, 200), 10));
 
 	// ADD LIGHTS
-	lightsSources.push_back(Vector3(10, 25, 200));
-	lightsSources.push_back(Vector3(250, 25, 200));
-	//Vector3 lightPosition = Vector3(10, 25, 200);
-
+	lightsSources.push_back(Light(Vector3(10, 25, 200), 255, 0, 0));
+	lightsSources.push_back(Light(Vector3(300, 25, 200), 0, 255, 0));
+	
 	unsigned width = 256, height = 256;
 	std::vector<unsigned char> image;
 	image.resize(width * height * 4);
@@ -54,23 +54,24 @@ int main() {
 		for (unsigned y = 0; y < height; y++) {
 			int index = 4 * width * y + 4 * x;
 			Ray r = Ray(Vector3(x, y, 0), Vector3(0, 0, 1));
-			setColor(image, 4 * width * y + 4 * x, 255, 255, 255);
+			setColor(image, 4 * width * y + 4 * x, 0, 100, 200);
 
 			for (Sphere& aSphere : spheres) {
 				float dist = hit_sphere(aSphere, r);
 				if (dist >= 0) {
-					setColor(image, index, 200, 200, 200);
 
-					for (Vector3& aLight : lightsSources) {
 
+					for (Light& aLight : lightsSources) {
 						Vector3 p = Vector3(x, y, dist);
-						Vector3 dir = (aLight - p).normalized();
+						Vector3 dir = (aLight.position - p).normalized();
+
+						setColor(image, index, aLight.r, aLight.g, aLight.b);
 
 						Ray _r = Ray(p + dir * -0.01f, dir);
 						for (Sphere& _aSphere : spheres) {
 							float dist_otherSphere = hit_sphere(_aSphere, _r);
 							if (dist_otherSphere >= 0) // If the ray hits another sphere
-								setColor(image, index, 50, 50, 50);
+								setColor(image, index, 0, 0, 0);
 						}
 					}
 				}

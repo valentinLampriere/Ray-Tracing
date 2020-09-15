@@ -142,12 +142,14 @@
     <ClCompile Include="intersection-rayon-sphere.cpp" />
     <ClCompile Include="lib\lodepng.cpp" />
     <ClCompile Include="lib\vector.cpp" />
+    <ClCompile Include="Light.cpp" />
     <ClCompile Include="Ray.cpp" />
     <ClCompile Include="Sphere.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="lib\lodepng.h" />
     <ClInclude Include="lib\vector.h" />
+    <ClInclude Include="Light.h" />
     <ClInclude Include="Ray.h" />
     <ClInclude Include="Sphere.h" />
   </ItemGroup>
