@@ -22,7 +22,7 @@ void encodeOneStep(const char* filename, std::vector<unsigned char>& image, unsi
 	if (error) std::cout << "encoder error " << error << ": " << lodepng_error_text(error) << std::endl;
 }
 
-void setColor(std::vector<unsigned char> image, int index, int r, int g, int b, int alpha) {
+void setColor(std::vector<unsigned char> &image, int index, int r, int g, int b, int alpha = 255) {
 	image[index] = r;			// Red
 	image[index + 1] = g;		// Green
 	image[index + 2] = b;		// Blue
@@ -32,7 +32,7 @@ void setColor(std::vector<unsigned char> image, int index, int r, int g, int b, 
 int main() {
 
 	Vector3 sphereCenter = Vector3(125, 125, 50);
-	Vector3 lightPosition = Vector3(80, 200, 80);
+	Vector3 lightPosition = Vector3(80, 200, 50);
 	float	sphereRadius = 25;
 
 	unsigned width = 256, height = 256;
@@ -45,20 +45,12 @@ int main() {
 			if (hit_sphere(sphereCenter, sphereRadius, Vector3(x, y, 0), Vector3(0, 0, 1)) >= 0) {
 				Vector3 rayOrigin = Vector3(x, y, 0);
 
-				float c = (hit_sphere(sphereCenter, sphereRadius, rayOrigin, (lightPosition - rayOrigin).normalized()) >= 0) ? 255 : 0;
-
-				//setColor(image, index, c, c, c, 255);
-				image[index] = c;		// Red
-				image[index + 1] = c;	// Green
-				image[index + 2] = c;	// Blue
-				image[index + 3] = 255; // Alpha
+				//float c = (hit_sphere(sphereCenter, sphereRadius, rayOrigin, (lightPosition - rayOrigin).normalized()) >= 0) ? 255 : 0;
+				float c = hit_sphere(sphereCenter, sphereRadius, rayOrigin, (lightPosition - rayOrigin).normalized());
+				setColor(image, index, c, c, c);
 			}
 			else {
-				//setColor(image*, index, 255, 255, 255, 255);
-				image[index] =	   255;	// Red
-				image[index + 1] = 255;	// Green
-				image[index + 2] = 255;	// Blue
-				image[index + 3] = 255; // Alpha
+				setColor(image, index, 255, 255, 255);
 			}
 		}
 	}
