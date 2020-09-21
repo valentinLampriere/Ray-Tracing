@@ -31,10 +31,25 @@ void setColor(std::vector<unsigned char> &image, int index, int r, int g, int b,
 	image[index + 3] = alpha;	// Alpha
 }
 
-int main() {
+Color calcLuminosity(Vector3 p, Sphere s, Light l) {
+	int V = 0;
 
-	std::vector<Sphere> spheres;
-	std::vector<Light> lightsSources;
+	Vector3 dir = (l.position - p).normalized();
+
+	//setColor(image, index, aLight.r, aLight.g, aLight.b);
+
+	Ray _r = Ray(p + dir * -0.01f, dir);
+	for (Sphere& _aSphere : spheres) {
+		float dist_otherSphere = hit_sphere(_aSphere, _r);
+		if (dist_otherSphere >= 0) // If the ray hits another sphere
+			setColor(image, index, 0, 0, 0);
+	}
+}
+
+std::vector<Sphere> spheres;
+std::vector<Light> lightsSources;
+
+int main() {
 
 	// ADD SPHERES
 	spheres.push_back(Sphere(Vector3(200, 200, 198), 60));
@@ -42,8 +57,8 @@ int main() {
 	spheres.push_back(Sphere(Vector3(50, 65, 200), 10));
 
 	// ADD LIGHTS
-	lightsSources.push_back(Light(Vector3(10, 25, 200), 255, 0, 0));
-	lightsSources.push_back(Light(Vector3(300, 25, 200), 0, 255, 0));
+	lightsSources.push_back(Light(Vector3(10, 25, 200), Color(0, 255, 0)));
+	lightsSources.push_back(Light(Vector3(300, 25, 200), Color(0, 255, 0, 333)));
 	
 	unsigned width = 256, height = 256;
 	std::vector<unsigned char> image;
@@ -59,10 +74,11 @@ int main() {
 			for (Sphere& aSphere : spheres) {
 				float dist = hit_sphere(aSphere, r);
 				if (dist >= 0) {
-
-
 					for (Light& aLight : lightsSources) {
-						Vector3 p = Vector3(x, y, dist);
+
+						calcLuminosity(Vector3(x, y, dist), aSphere, aLight);
+
+						/*Vector3 p = Vector3(x, y, dist);
 						Vector3 dir = (aLight.position - p).normalized();
 
 						setColor(image, index, aLight.r, aLight.g, aLight.b);
@@ -72,7 +88,7 @@ int main() {
 							float dist_otherSphere = hit_sphere(_aSphere, _r);
 							if (dist_otherSphere >= 0) // If the ray hits another sphere
 								setColor(image, index, 0, 0, 0);
-						}
+						}*/
 					}
 				}
 			}
