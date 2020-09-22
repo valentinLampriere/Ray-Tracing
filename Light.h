@@ -10,8 +10,9 @@ class Light {
 public:
 	Vector3 position;
 	Color color;
+	float intensity;
 
-	Light(Vector3 pos, Color c);
+	Light(Vector3 pos, Color c, float intensity);
 
 	Color GetColor();
 };

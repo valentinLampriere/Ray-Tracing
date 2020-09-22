@@ -8,10 +8,11 @@ class Color {
 public:
 	float r, g, b;
 
-	Color();
+	Color() = default;
 	Color(float r, float g, float b);
-	Color ToAlbedo();
+	//Color ToAlbedo();
 	Color Clamp();
+	//Color ClampTo255();
 	Color operator*(const float f);
 	Color operator*(const Color c);
 	Color operator/(const float f);

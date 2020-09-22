@@ -12,7 +12,7 @@ public:
 	float radius;
 	Color color;
 
-	Sphere(Vector3 o, float r, Color c = Color(255,255,255));
+	Sphere(Vector3 o, float r, Color c = Color(1,1,1));
 };
 
 #endif
