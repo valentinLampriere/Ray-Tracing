@@ -11,8 +11,8 @@ public:
 	Color() = default;
 	Color(float r, float g, float b);
 	//Color ToAlbedo();
-	Color Clamp();
-	//Color ClampTo255();
+	Color Clamp255();
+	Color operator+(const Color c);
 	Color operator*(const float f);
 	Color operator*(const Color c);
 	Color operator/(const float f);
