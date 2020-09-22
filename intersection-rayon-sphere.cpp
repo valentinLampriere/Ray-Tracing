@@ -42,13 +42,7 @@ void setColor(std::vector<unsigned char>& image, int index, Color c) {
 	image[index + 3] = 255;		// Blue
 }
 
-std::vector<Sphere> spheres;
-std::vector<Light> lightsSources;
-
-std::vector<unsigned char> image;
-
-Color calcLuminosityAtPoint(Vector3 point, Sphere s, Light l) {
-	float V = 1;
+Color calcLuminosityAtPoint(Vector3 point, Sphere s, Light l, std::vector<Sphere> spheres) {
 	Vector3 N = (point - s.position).normalized(); // Normale on "point"
 
 	Vector3 dir = (l.position - point).normalized();
@@ -67,13 +61,19 @@ Color calcLuminosityAtPoint(Vector3 point, Sphere s, Light l) {
 	return (l.GetColor() * std::abs(N.dot(dir))) / (distance2 * M_PI);
 }
 
+
 int main() {
 
+	std::vector<Sphere> spheres;
+	std::vector<Light> lightsSources;
+
+	std::vector<unsigned char> image;
+
 	// ADD SPHERES
-	spheres.push_back(Sphere(Vector3(30, 150, 275), 40));
-	spheres.push_back(Sphere(Vector3(180, 140, 150), 55));
-	spheres.push_back(Sphere(Vector3(225, 175, 95), 20));
-	spheres.push_back(Sphere(Vector3(110, 133, 110), 15));
+	spheres.push_back(Sphere(Vector3(30, 150, 275), 40, false));
+	spheres.push_back(Sphere(Vector3(180, 140, 150), 55, false));
+	spheres.push_back(Sphere(Vector3(225, 175, 95), 20, false));
+	spheres.push_back(Sphere(Vector3(110, 133, 110), 15, true));
 
 	// ADD LIGHTS
 	lightsSources.push_back(Light(Vector3(0, 0, 0), Color(1, 0, 0), 40000000));
@@ -86,38 +86,26 @@ int main() {
 	for (unsigned x = 0; x < width; x++) {
 		for (unsigned y = 0; y < height; y++) {
 
-			//Color colXY = Color(0, 0.33, 0.8);
 			Color colXY = Color(0, 0, 0);
 
 			int index = 4 * width * y + 4 * x;
 			Ray r = Ray(Vector3(x, y, 0), Vector3(0, 0, 1));
-			//setColor(image, 4 * width * y + 4 * x, Color(0, 0.33, 0.8));
 
 			for (Sphere& aSphere : spheres) {
 				float dist = hit_sphere(aSphere, r); // TODO : calc lumiere que pour la premiere sphere
 				if (dist >= 0) {
+					/*Vector3 normale = (aSphere.position - Vector3(x, y, dist)).normalized();
+					Vector3 directionReflectedRay = normale * 2 * Vector3::dot((Vector3(0,0,0) - r.direction), normale) + r.direction;
+
+					Ray reflectRay = Ray(Vector3(x, y, dist), directionReflectedRay);*/
 
 					for (Light& aLight : lightsSources) {
-						Color c = calcLuminosityAtPoint(Vector3(x, y, dist), aSphere, aLight); // TODO : calc pos point
+						Color c = calcLuminosityAtPoint(Vector3(x, y, dist), aSphere, aLight, spheres); // TODO : calc pos point
 
 						colXY = colXY + c;
-
-						/*Vector3 p = Vector3(x, y, dist);
-						Vector3 dir = (aLight.position - p).normalized();
-
-						setColor(image, index, aLight.GetColor().Clamp());
-
-						Ray _r = Ray(p + dir * -0.01f, dir);
-						for (Sphere& _aSphere : spheres) {
-							float dist_otherSphere = hit_sphere(_aSphere, _r);
-							if (dist_otherSphere >= 0) // If the ray hits another sphere
-								setColor(image, index,Color(0,0,0));
-						}*/
 					}
 				}
 			}
-			/*if (colXY.r > 0)
-				cout << colXY << "\n";*/
 			setColor(image, index, colXY.Clamp255());
 		}
 	}
