@@ -1,8 +1,10 @@
 #include "light.h"
 
-Light::Light(Vector3 pos, int r, int g, int b) {
+Light::Light(Vector3 pos, Color c) {
 	position = pos;
-	this->r = r;
-	this->g = g;
-	this->b = b;
+	color = c;
+}
+
+Color Light::getColor() {
+	return color;
 }

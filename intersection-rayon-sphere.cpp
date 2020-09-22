@@ -42,8 +42,8 @@ int main() {
 	spheres.push_back(Sphere(Vector3(50, 65, 200), 10));
 
 	// ADD LIGHTS
-	lightsSources.push_back(Light(Vector3(10, 25, 200), 255, 0, 0));
-	lightsSources.push_back(Light(Vector3(300, 25, 200), 0, 255, 0));
+	lightsSources.push_back(Light(Vector3(10, 25, 200), Color(255, 0, 0)));
+	lightsSources.push_back(Light(Vector3(300, 25, 200), Color(0, 100, 100, 333)));
 	
 	unsigned width = 256, height = 256;
 	std::vector<unsigned char> image;
@@ -60,12 +60,11 @@ int main() {
 				float dist = hit_sphere(aSphere, r);
 				if (dist >= 0) {
 
-
 					for (Light& aLight : lightsSources) {
 						Vector3 p = Vector3(x, y, dist);
 						Vector3 dir = (aLight.position - p).normalized();
 
-						setColor(image, index, aLight.r, aLight.g, aLight.b);
+						setColor(image, index, aLight.getColor().r, aLight.getColor().g, aLight.getColor().b);
 
 						Ray _r = Ray(p + dir * -0.01f, dir);
 						for (Sphere& _aSphere : spheres) {

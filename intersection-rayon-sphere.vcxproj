@@ -139,6 +139,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Color.cpp" />
     <ClCompile Include="intersection-rayon-sphere.cpp" />
     <ClCompile Include="lib\lodepng.cpp" />
     <ClCompile Include="lib\vector.cpp" />
@@ -147,6 +148,7 @@
     <ClCompile Include="Sphere.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Color.h" />
     <ClInclude Include="lib\lodepng.h" />
     <ClInclude Include="lib\vector.h" />
     <ClInclude Include="Light.h" />
