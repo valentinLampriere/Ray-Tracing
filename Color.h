@@ -1,3 +1,4 @@
+#include <iostream>
 #ifndef COLOR_H
 #define COLOR_H
 
@@ -5,10 +6,19 @@ using namespace std;
 
 class Color {
 public:
-	int r, g, b, intensity;
+	float r, g, b;
 
 	Color();
-	Color(int r, int g, int b, int intensity = 100);
+	Color(float r, float g, float b);
+	Color ToAlbedo();
+	Color Clamp();
+	Color operator*(const float f);
+	Color operator*(const Color c);
+	Color operator/(const float f);
+	friend std::ostream& operator<<(std::ostream& output, const Color& color) {
+		output << "Color(" << color.r << ", " << color.g << ", " << color.b << ")";
+		return output;
+	}
 };
 
 #endif

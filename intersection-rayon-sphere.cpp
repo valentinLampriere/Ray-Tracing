@@ -4,6 +4,9 @@
 #include "Light.h"
 #include "lib/lodepng.h"
 
+#define _USE_MATH_DEFINES
+#include <math.h>
+
 float hit_sphere(Sphere sphere, Ray ray) {
 	Vector3 oc = ray.origin - sphere.position;
 	float a = Vector3::dot(ray.direction, ray.direction);
@@ -24,44 +27,71 @@ void encodeOneStep(const char* filename, std::vector<unsigned char>& image, unsi
 	if (error) std::cout << "encoder error " << error << ": " << lodepng_error_text(error) << std::endl;
 }
 
-void setColor(std::vector<unsigned char> &image, int index, int r, int g, int b, int alpha = 255) {
-	image[index] = r;			// Red
-	image[index + 1] = g;		// Green
-	image[index + 2] = b;		// Blue
-	image[index + 3] = alpha;	// Alpha
+void setColor(std::vector<unsigned char>& image, int index, Color c) {
+	image[index] = c.r;			// Red
+	image[index + 1] = c.g;		// Green
+	image[index + 2] = c.b;		// Blue
+	image[index + 3] = 255;		// Blue
+}
+
+std::vector<Sphere> spheres;
+std::vector<Light> lightsSources;
+
+std::vector<unsigned char> image;
+
+Color calcLuminosityAtPoint(Vector3 point, Sphere s, Light l) {
+	float V = 1;
+	Vector3 N = (point - s.position).normalized(); // Normale on "point"
+
+	Vector3 dir = (l.position - point).normalized();
+
+	Ray _r = Ray(point + dir * +0.01f, dir);
+
+	float distance2 = (l.position - point).lengthSquare();
+
+	for (Sphere& _aSphere : spheres) {
+		float dist_otherSphere = hit_sphere(_aSphere, _r);
+		if (dist_otherSphere >= 0 && dist_otherSphere * dist_otherSphere < distance2) { // If the ray hits another sphere
+			return Color(0, 0, 0);
+			//V = 0;
+		}
+	}
+	
+	return ( l.GetColor() * s.color.ToAlbedo()  * std::abs(N.dot(dir))) / (distance2 * M_PI);
 }
 
 int main() {
 
-	std::vector<Sphere> spheres;
-	std::vector<Light> lightsSources;
-
 	// ADD SPHERES
-	spheres.push_back(Sphere(Vector3(200, 200, 198), 60));
-	spheres.push_back(Sphere(Vector3(90, 130, 205), 25));
+	spheres.push_back(Sphere(Vector3(200, 200, 200), 60));
+	spheres.push_back(Sphere(Vector3(90, 130, 200), 25));
 	spheres.push_back(Sphere(Vector3(50, 65, 200), 10));
 
 	// ADD LIGHTS
-	lightsSources.push_back(Light(Vector3(10, 25, 200), Color(255, 0, 0)));
-	lightsSources.push_back(Light(Vector3(300, 25, 200), Color(0, 100, 100, 333)));
-	
-	unsigned width = 256, height = 256;
-	std::vector<unsigned char> image;
-	image.resize(width * height * 4);
+	lightsSources.push_back(Light(Vector3(0, 0, 200), Color(500000000, 0, 0)));
+	//lightsSources.push_back(Light(Vector3(300, 0, 200), Color(0, 250000, 500000)));
 
+
+	unsigned width = 256, height = 256;
+	image.resize(width * height * 4);
 
 	for (unsigned x = 0; x < width; x++) {
 		for (unsigned y = 0; y < height; y++) {
 			int index = 4 * width * y + 4 * x;
 			Ray r = Ray(Vector3(x, y, 0), Vector3(0, 0, 1));
-			setColor(image, 4 * width * y + 4 * x, 0, 100, 200);
+			setColor(image, 4 * width * y + 4 * x, Color(0, 100, 200));
 
 			for (Sphere& aSphere : spheres) {
 				float dist = hit_sphere(aSphere, r);
 				if (dist >= 0) {
 
 					for (Light& aLight : lightsSources) {
-						Vector3 p = Vector3(x, y, dist);
+
+						Color c = calcLuminosityAtPoint(Vector3(x, y, dist), aSphere, aLight);
+
+						setColor(image, index, c.Clamp());
+
+						/*Vector3 p = Vector3(x, y, dist);
 						Vector3 dir = (aLight.position - p).normalized();
 
 						setColor(image, index, aLight.getColor().r, aLight.getColor().g, aLight.getColor().b);
@@ -71,7 +101,7 @@ int main() {
 							float dist_otherSphere = hit_sphere(_aSphere, _r);
 							if (dist_otherSphere >= 0) // If the ray hits another sphere
 								setColor(image, index, 0, 0, 0);
-						}
+						}*/
 					}
 				}
 			}

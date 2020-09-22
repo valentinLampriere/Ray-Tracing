@@ -5,6 +5,6 @@ Light::Light(Vector3 pos, Color c) {
 	color = c;
 }
 
-Color Light::getColor() {
+Color Light::GetColor() {
 	return color;
 }

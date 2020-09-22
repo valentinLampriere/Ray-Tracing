@@ -13,7 +13,7 @@ public:
 
 	Light(Vector3 pos, Color c);
 
-	Color getColor();
+	Color GetColor();
 };
 
 #endif
