@@ -1,4 +1,5 @@
 #include <iostream>
+#include <optional>
 #include "Sphere.h"
 #include "Ray.h"
 #include "Light.h"
@@ -69,13 +70,14 @@ Color calcLuminosityAtPoint(Vector3 point, Sphere s, Light l) {
 int main() {
 
 	// ADD SPHERES
-	spheres.push_back(Sphere(Vector3(200, 200, 200), 60));
-	spheres.push_back(Sphere(Vector3(90, 130, 200), 25));
-	spheres.push_back(Sphere(Vector3(50, 65, 200), 10));
+	spheres.push_back(Sphere(Vector3(30, 150, 275), 40));
+	spheres.push_back(Sphere(Vector3(180, 140, 150), 55));
+	spheres.push_back(Sphere(Vector3(225, 175, 95), 20));
+	spheres.push_back(Sphere(Vector3(110, 133, 110), 15));
 
 	// ADD LIGHTS
-	lightsSources.push_back(Light(Vector3(0, 0, 200), Color(1, 0, 0), 50000000));
-	lightsSources.push_back(Light(Vector3(300, 0, 200), Color(0, 0.25, 0.75), 25000000));
+	lightsSources.push_back(Light(Vector3(0, 0, 0), Color(1, 0, 0), 40000000));
+	lightsSources.push_back(Light(Vector3(300, -30, 220), Color(0, 0.25, 0.75), 50000000));
 
 
 	unsigned width = 256, height = 256;
