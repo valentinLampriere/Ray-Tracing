@@ -2,3 +2,4 @@
 .vs/intersection-rayon-sphere/v16/Browse.VC.opendb
 Debug/
 .vs/intersection-rayon-sphere/v16/Browse.VC.db
+*.ipch
