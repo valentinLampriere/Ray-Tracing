@@ -3,6 +3,7 @@
 #include "Sphere.h"
 #include "Ray.h"
 #include "Light.h"
+#include "Camera.h"
 #include "lib/lodepng.h"
 
 #define _USE_MATH_DEFINES
@@ -13,7 +14,7 @@ std::vector<Light> lightsSources;
 
 std::vector<unsigned char> image;
 
-unsigned width = 512, height = 512;
+//unsigned width = 512, height = 512;
 
 
 float hit_sphere(Sphere sphere, Ray ray) {
@@ -82,7 +83,7 @@ Color calcLuminosityAtPoint(Vector3 point, Sphere s, Light l) {
 		float dist_otherSphere = hit_sphere(_aSphere, _r);
 		
 		if (dist_otherSphere >= 0 && dist_otherSphere * dist_otherSphere < distance2) { // If the ray hits another sphere
-			return Color(0, 0, 0);
+			return Color(0,0,1);
 		}
 	}
 	return (l.GetColor() * std::abs(N.dot(dir))) / (distance2 * M_PI);
@@ -90,35 +91,38 @@ Color calcLuminosityAtPoint(Vector3 point, Sphere s, Light l) {
 
 int main() {
 
+	// ADD A CAMERA
+	Camera camera = Camera(512, 512, 1000);
+
 	// ADD SPHERES
-	spheres.push_back(Sphere(Vector3(256, 256, 250), 100, Color(0, 0, 0)));
+	spheres.push_back(Sphere(Vector3(256, 10500, 0), 10000, Color(1, 1, 1)));
+	spheres.push_back(Sphere(Vector3(256, 256, 300), 100, Color(0, 0, 0)));
 	spheres.push_back(Sphere(Vector3(200, 300, 80), 60, Color(1, 1, 0)));
 	spheres.push_back(Sphere(Vector3(400, 175, 175), 40));
 
 	// ADD LIGHTS
-	/*lightsSources.push_back(Light(Vector3(0, 0, -50), Color(0, 0.25, 0.75), 55000000));
-	lightsSources.push_back(Light(Vector3(512, 0, 50), Color(0.8, 0.2, 0.2), 75000000));
-	lightsSources.push_back(Light(Vector3(256, 600, -100), Color(0, 0.8, 0.4), 40000000));*/
-	lightsSources.push_back(Light(Vector3(0, 0, -50), Color(1, 0.75, 0.5), 55000000));
-	lightsSources.push_back(Light(Vector3(512, 0, 50), Color(0.75, 0.5, 1), 60000000));
-	lightsSources.push_back(Light(Vector3(256, 600, -100), Color(0.5, 0.75, 1), 40000000));
+	lightsSources.push_back(Light(Vector3(216, 0, -100), Color(1, 1, 0.2), 75000000));
+	lightsSources.push_back(Light(Vector3(650, 200, 90), Color(0, 0.75, 1), 30000000));
+	lightsSources.push_back(Light(Vector3(75, 350, 1000), Color(1, 0.8, 0.8), 30000000));
 
-	image.resize(width * height * 4);
+	image.resize(camera.width * camera.height * 4);
 
-	for (unsigned x = 0; x < width; x++) {
-		for (unsigned y = 0; y < height; y++) {
+	for (unsigned x = 0; x < camera.width; x++) {
+		for (unsigned y = 0; y < camera.height; y++) {
+			int index = 4 * camera.width * y + 4 * x;
 
-			Color colXY = Color(0, 0, 0);
+			Color colXY = Color(0, 0, 1);
 
-			int index = 4 * width * y + 4 * x;
-			Ray r = Ray(Vector3(x, y, 0), Vector3(0, 0, 1));
+			Vector3 point = Vector3(camera.position.x + x, camera.position.y + y, camera.position.z);
+
+			Ray r = Ray(point, camera.GetNormalAtPoint(point));
 
 			float distanceFirstSphere;
 			int closestSphereIndex = hit_spheres(r, &distanceFirstSphere);
 
 			if (closestSphereIndex != -1) { // There is an intersection with a sphere
 				for (Light& aLight : lightsSources) {
-					Color c = calcLuminosityAtPoint(Vector3(x, y, distanceFirstSphere), spheres[closestSphereIndex], aLight); // TODO : calc pos point
+					Color c = calcLuminosityAtPoint(Vector3(distanceFirstSphere * camera.GetNormalAtPoint(point).x + x + camera.position.x, distanceFirstSphere * camera.GetNormalAtPoint(point).y + y + camera.position.y, distanceFirstSphere * camera.GetNormalAtPoint(point).z + camera.position.z), spheres[closestSphereIndex], aLight);
 
 					colXY = colXY + c;
 
@@ -136,10 +140,9 @@ int main() {
 				colXY = colXY + spheres[closestSphereIndex].color;
 
 			}
-
 			setColor(image, index, colXY.Clamp255());
 		}
 	}
 
-	encodeOneStep("image.png", image, width, height);
+	encodeOneStep("image.png", image, camera.width, camera.height);
 }
