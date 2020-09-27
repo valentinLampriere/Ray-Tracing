@@ -10,7 +10,6 @@ public:
 
 	Color() = default;
 	Color(float r, float g, float b);
-	Color Clamp();
 	Color Clamp255();
 	Color operator+(const Color c);
 	Color operator*(const float f);

@@ -83,7 +83,7 @@ Color calcLuminosityAtPoint(Vector3 point, Sphere s, Light l) {
 		float dist_otherSphere = hit_sphere(_aSphere, _r);
 		
 		if (dist_otherSphere >= 0 && dist_otherSphere * dist_otherSphere < distance2) { // If the ray hits another sphere
-			return Color(0,0,1);
+			return Color(0,0,0);
 		}
 	}
 	return (l.GetColor() * std::abs(N.dot(dir))) / (distance2 * M_PI);
@@ -96,13 +96,13 @@ Color reflectRay(Ray ray, Sphere sphere, Vector3 point) {
 	float distance;
 	int indexSphere = hit_spheres(newRay, &distance);
 	if (indexSphere == -1) {
-		return Color(1, 0, 0.8);
+		return Color(0, 0, 0);
 	} else {
 		if (spheres[indexSphere].isMirror) {
 			reflectRay(newRay, spheres[indexSphere], point + directionNewRay * distance);
 		}
 		else {
-			return Color(1, 0, 0);
+			return Color(25, 225, 125);
 		}
 	}
 
@@ -112,16 +112,16 @@ int main() {
 	// ADD A CAMERA
 	Camera camera = Camera(512, 512, 1000);
 
-	// ADD 
-	spheres.push_back(Sphere(Vector3(256, 10500, 0), 10000, Color(1, 1, 1))); // ground
+	// ADD SPHERES
+	spheres.push_back(Sphere(Vector3(256, 10512, 0), 10000, Color(0, 0, 0))); // ground
 	spheres.push_back(Sphere(Vector3(256, 256, 300), 100, true));
-	spheres.push_back(Sphere(Vector3(200, 300, 80), 60, Color(1, 1, 0)));
-	spheres.push_back(Sphere(Vector3(400, 175, 175), 40));
+	spheres.push_back(Sphere(Vector3(175, 432, 222), 80, Color(0, 0, 255)));
+	spheres.push_back(Sphere(Vector3(400, 175, 175), 40, Color(255, 255, 0)));
 
 	// ADD LIGHTS
-	lightsSources.push_back(Light(Vector3(216, 0, -100), Color(1, 1, 0.2), 75000000));
-	lightsSources.push_back(Light(Vector3(650, 200, 90), Color(0, 0.75, 1), 30000000));
-	lightsSources.push_back(Light(Vector3(75, 350, 1000), Color(1, 0.8, 0.8), 30000000));
+	lightsSources.push_back(Light(Vector3(216, 0, 222), Color(255, 255, 50), 400000));
+	lightsSources.push_back(Light(Vector3(650, 200, 90), Color(0, 200, 255), 180000));
+	lightsSources.push_back(Light(Vector3(-50, 150, 133), Color(240, 80, 0), 200000));
 
 	image.resize(camera.width * camera.height * 4);
 
@@ -140,6 +140,7 @@ int main() {
 
 			if (closestSphereIndex != -1) { // There is an intersection with a sphere
 				if (spheres[closestSphereIndex].isMirror == false) {
+
 					for (Light& aLight : lightsSources) {
 						Color c = calcLuminosityAtPoint(Vector3(distanceFirstSphere * camera.GetNormalAtPoint(point).x + x + camera.position.x, distanceFirstSphere * camera.GetNormalAtPoint(point).y + y + camera.position.y, distanceFirstSphere * camera.GetNormalAtPoint(point).z + camera.position.z), spheres[closestSphereIndex], aLight);
 
@@ -155,10 +156,10 @@ int main() {
 								setColor(image, index, Color(0, 0, 0));
 						}
 
-						colXY = colXY + spheres[closestSphereIndex].color;
+						colXY = colXY + spheres[closestSphereIndex].color * 0.05f;
 					}
 				} else {
-					colXY = reflectRay(r, spheres[closestSphereIndex], point);
+					colXY = colXY + reflectRay(r, spheres[closestSphereIndex], point);
 				}
 			}
 			setColor(image, index, colXY.Clamp255());
