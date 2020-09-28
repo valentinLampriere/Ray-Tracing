@@ -105,7 +105,32 @@ Color reflectRay(Ray ray, Sphere sphere, Vector3 point) {
 			return Color(25, 225, 125);
 		}
 	}
+}
 
+Color manageLightReflection(Vector3 pointIntersection, Sphere s, int index) {
+	Color colXY = Color(0, 0, 0);
+
+	for (Light& aLight : lightsSources) {
+		Color c = calcLuminosityAtPoint(pointIntersection, s, aLight);
+
+		colXY = colXY + c;
+
+		Vector3 dir = (aLight.position - pointIntersection).normalized();
+
+		Ray _r = Ray(pointIntersection + dir * -0.01f, dir);
+		for (Sphere& _aSphere : spheres) {
+			if (_aSphere != s) {
+				float dist_otherSphere = hit_sphere(_aSphere, _r);
+				if (dist_otherSphere >= 0) { // If the ray hits another sphere
+					//colXY = Color(0, 0, 0);
+					setColor(image, index, Color(0, 0, 0));
+				}
+			}
+		}
+
+		colXY = colXY + s.color * 0.05f;
+	}
+	return colXY;
 }
 
 int main() {
@@ -140,28 +165,13 @@ int main() {
 
 			if (closestSphereIndex != -1) { // There is an intersection with a sphere
 				if (spheres[closestSphereIndex].isMirror == false) {
-
-					for (Light& aLight : lightsSources) {
-						Color c = calcLuminosityAtPoint(Vector3(distanceFirstSphere * camera.GetNormalAtPoint(point).x + x + camera.position.x, distanceFirstSphere * camera.GetNormalAtPoint(point).y + y + camera.position.y, distanceFirstSphere * camera.GetNormalAtPoint(point).z + camera.position.z), spheres[closestSphereIndex], aLight);
-
-						colXY = colXY + c;
-
-						Vector3 p = Vector3(x, y, distanceFirstSphere);
-						Vector3 dir = (aLight.position - p).normalized();
-
-						Ray _r = Ray(p + dir * -0.01f, dir);
-						for (Sphere& _aSphere : spheres) {
-							float dist_otherSphere = hit_sphere(_aSphere, _r);
-							if (dist_otherSphere >= 0) // If the ray hits another sphere
-								setColor(image, index, Color(0, 0, 0));
-						}
-
-						colXY = colXY + spheres[closestSphereIndex].color * 0.05f;
-					}
+					Vector3 ptIntersection = Vector3(distanceFirstSphere * camera.GetNormalAtPoint(point).x + x + camera.position.x, distanceFirstSphere * camera.GetNormalAtPoint(point).y + y + camera.position.y, distanceFirstSphere * camera.GetNormalAtPoint(point).z + camera.position.z);
+					colXY = manageLightReflection(ptIntersection, spheres[closestSphereIndex], index);
 				} else {
 					colXY = colXY + reflectRay(r, spheres[closestSphereIndex], point);
 				}
 			}
+
 			setColor(image, index, colXY.Clamp255());
 		}
 	}

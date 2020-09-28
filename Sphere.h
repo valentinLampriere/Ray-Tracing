@@ -16,6 +16,8 @@ public:
 	Sphere(Vector3 o, float r, Color c = Color(255, 255, 255));
 	Sphere(Vector3 o, float r, bool isMirror);
 	Vector3 normaleAtPoint(Vector3 point);
+	bool operator==(const Sphere s);
+	bool operator!=(const Sphere s);
 };
 
 #endif
