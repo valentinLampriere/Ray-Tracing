@@ -89,7 +89,13 @@ Color calcLuminosityAtPoint(Vector3 point, Sphere s, Light l) {
 	return (l.GetColor() * std::abs(N.dot(dir))) / (distance2 * M_PI);
 }
 
-Color reflectRay(Ray ray, Sphere sphere, Vector3 point) {
+Color manageLightReflection(Vector3 pointIntersection, Sphere s, int index);
+
+Color reflectRay(Ray ray, Sphere sphere, Vector3 point, int index, int depth = 0) {
+	if (depth >= 10) {
+		return Color(0, 0, 0);
+	}
+
 	Vector3 normale = sphere.normaleAtPoint(point);
 	Vector3 directionNewRay = (normale * 2 * Vector3::dot(Vector3() - ray.direction, normale) + ray.direction).normalized();
 	Ray newRay = Ray(point, directionNewRay);
@@ -99,10 +105,10 @@ Color reflectRay(Ray ray, Sphere sphere, Vector3 point) {
 		return Color(0, 0, 0);
 	} else {
 		if (spheres[indexSphere].isMirror) {
-			reflectRay(newRay, spheres[indexSphere], point + directionNewRay * distance);
+			reflectRay(newRay, spheres[indexSphere], point + directionNewRay * distance, index, depth + 1);
 		}
 		else {
-			return Color(25, 225, 125);
+			manageLightReflection(ray.origin + ray.direction * distance, sphere, index);
 		}
 	}
 }
@@ -110,25 +116,29 @@ Color reflectRay(Ray ray, Sphere sphere, Vector3 point) {
 Color manageLightReflection(Vector3 pointIntersection, Sphere s, int index) {
 	Color colXY = Color(0, 0, 0);
 
-	for (Light& aLight : lightsSources) {
-		Color c = calcLuminosityAtPoint(pointIntersection, s, aLight);
+	if (s.isMirror == false) {
+		for (Light& aLight : lightsSources) {
+			Color c = calcLuminosityAtPoint(pointIntersection, s, aLight);
 
-		colXY = colXY + c;
+			colXY = colXY + c;
 
-		Vector3 dir = (aLight.position - pointIntersection).normalized();
+			Vector3 dir = (aLight.position - pointIntersection).normalized();
 
-		Ray _r = Ray(pointIntersection + dir * -0.01f, dir);
-		for (Sphere& _aSphere : spheres) {
-			if (_aSphere != s) {
-				float dist_otherSphere = hit_sphere(_aSphere, _r);
-				if (dist_otherSphere >= 0) { // If the ray hits another sphere
-					//colXY = Color(0, 0, 0);
-					setColor(image, index, Color(0, 0, 0));
+			Ray _r = Ray(pointIntersection + dir * -0.01f, dir);
+			for (Sphere& _aSphere : spheres) {
+				if (_aSphere != s) {
+					float dist_otherSphere = hit_sphere(_aSphere, _r);
+					if (dist_otherSphere >= 0) { // If the ray hits another sphere
+						//colXY = Color(0, 0, 0);
+						setColor(image, index, Color(0, 0, 0));
+					}
 				}
 			}
-		}
 
-		colXY = colXY + s.color * 0.05f;
+			colXY = colXY + s.color * 0.05f;
+		}
+	} else {
+
 	}
 	return colXY;
 }
@@ -139,7 +149,7 @@ int main() {
 
 	// ADD SPHERES
 	spheres.push_back(Sphere(Vector3(256, 10512, 0), 10000, Color(0, 0, 0))); // ground
-	spheres.push_back(Sphere(Vector3(256, 256, 300), 100, true));
+	spheres.push_back(Sphere(Vector3(256, 256, 400), 100, true));
 	spheres.push_back(Sphere(Vector3(175, 432, 222), 80, Color(0, 0, 255)));
 	spheres.push_back(Sphere(Vector3(400, 175, 175), 40, Color(255, 255, 0)));
 
@@ -164,12 +174,12 @@ int main() {
 			int closestSphereIndex = hit_spheres(r, &distanceFirstSphere);
 
 			if (closestSphereIndex != -1) { // There is an intersection with a sphere
-				if (spheres[closestSphereIndex].isMirror == false) {
+				//if (spheres[closestSphereIndex].isMirror == false) {
 					Vector3 ptIntersection = Vector3(distanceFirstSphere * camera.GetNormalAtPoint(point).x + x + camera.position.x, distanceFirstSphere * camera.GetNormalAtPoint(point).y + y + camera.position.y, distanceFirstSphere * camera.GetNormalAtPoint(point).z + camera.position.z);
 					colXY = manageLightReflection(ptIntersection, spheres[closestSphereIndex], index);
-				} else {
-					colXY = colXY + reflectRay(r, spheres[closestSphereIndex], point);
-				}
+				//} else {
+				//	colXY = colXY + reflectRay(r, spheres[closestSphereIndex], point, index);
+				//}
 			}
 
 			setColor(image, index, colXY.Clamp255());
