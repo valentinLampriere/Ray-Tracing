@@ -68,15 +68,15 @@ void setColor(std::vector<unsigned char>& image, int index, Color c) {
 	image[index + 2] = c.b;		// Blue
 	image[index + 3] = 255;		// Alpha
 }
-Color calcLuminosityAtPoint(Vector3 point, Sphere s, Light l) {
+Color calcLuminosityAtPoint(Vector3 point, Sphere s, Vector3 lightPosition, Color lightColor) {
 	float V = 1;
 	Vector3 N = (point - s.position).normalized(); // Normale on "point"
 
-	Vector3 dir = (l.position - point).normalized();
+	Vector3 dir = (lightPosition - point).normalized();
 
 	Ray _r = Ray(point + dir * 0.05f, dir);
 
-	float distance2 = (l.position - point).lengthSquare();
+	float distance2 = (lightPosition - point).lengthSquare();
 
 	for (Sphere& _aSphere : spheres) {
 		float dist_otherSphere = hit_sphere(_aSphere, _r);
@@ -85,7 +85,7 @@ Color calcLuminosityAtPoint(Vector3 point, Sphere s, Light l) {
 			return Color(0,0,0);
 		}
 	}
-	return (l.GetColor() * std::abs(N.dot(dir))) / (distance2 * M_PI);
+	return (lightColor * std::abs(N.dot(dir))) / (distance2 * M_PI);
 }
 
 Color manageLightReflection(Vector3 pointOrigin, Vector3 pointIntersection, Sphere s, int index);
@@ -113,15 +113,20 @@ Color reflectRay(Ray ray, Sphere sphere, Vector3 point, int index, int depth = 0
 	}
 }
 
-//Color manageLightReflection(Vector3 pointIntersection, Sphere s, int index) {
 Color manageLightReflection(Vector3 pointOrigin, Vector3 pointIntersection, Sphere s, int index) {
 	Color colXY = Color(0, 0, 0);
 
 	if (s.isMirror == false) {
+		int nbRay = 5;
 		for (Light& aLight : lightsSources) {
-			Color c = calcLuminosityAtPoint(pointIntersection, s, aLight);
 
-			colXY = colXY + c;
+			Color colorALight = Color();
+			for (int i = 0; i < nbRay; i++) {
+				Vector3 offset = Vector3::random(-aLight.radius, aLight.radius);
+				colorALight = colorALight + calcLuminosityAtPoint(pointIntersection, s, aLight.position + offset, aLight.GetColor());
+			}
+			colorALight = colorALight / nbRay;
+			colXY = colXY + colorALight;
 
 			Vector3 dir = (aLight.position - pointIntersection).normalized();
 
@@ -134,8 +139,8 @@ Color manageLightReflection(Vector3 pointOrigin, Vector3 pointIntersection, Sphe
 					}
 				}
 			}
-			colXY = colXY + s.color * 0.1f;
 		}
+		colXY = colXY + s.color * 0.1f;
 	} else {
 		Ray ray = Ray(pointOrigin, (pointIntersection - pointOrigin).normalized());
 		colXY = colXY + reflectRay(ray, s, pointIntersection, index);
@@ -148,9 +153,10 @@ int main() {
 	Camera camera = Camera(1024, 1024, 2000);
 
 	// ADD SPHERES
-	spheres.push_back(Sphere(Vector3(512, 101024, 0), 100000, Color(255, 200, 0))); // ground
-	spheres.push_back(Sphere(Vector3(101050, 512, 5000), 100000, Color(215, 205, 210))); // wall right
-	spheres.push_back(Sphere(Vector3(512, 512, 101200), 100000, Color(215, 205, 210))); // wall back
+	spheres.push_back(Sphere(Vector3(512, 101024, 0), 100000, Color(255, 200, 0))); // Ground
+	spheres.push_back(Sphere(Vector3(101050, 512, 5000), 100000, Color(215, 205, 210))); // Wall right
+	spheres.push_back(Sphere(Vector3(512, 512, 101200), 100000, Color(215, 205, 210))); // Wall back
+
 	spheres.push_back(Sphere(Vector3(512, 512, 350), 200, true));
 	spheres.push_back(Sphere(Vector3(600, 512, -1050), 1000, true));
 	spheres.push_back(Sphere(Vector3(750, 864, 800), 160, Color(0, 255, 0)));
@@ -159,11 +165,13 @@ int main() {
 	spheres.push_back(Sphere(Vector3(800, 350, 300), 80, Color(255, 255, 0)));
 
 	// ADD LIGHTS
-	lightsSources.push_back(Light(Vector3(200, -200, 400), Color(255, 255, 255), 2000000));
+	lightsSources.push_back(Light(Vector3(200, -200, 400), Color(255, 255, 255), 2000000, 400.0f));
 	//lightsSources.push_back(Light(Vector3(1250, 500, 150), Color(0, 200, 255), 800000));
-	lightsSources.push_back(Light(Vector3(-100, 300, -150), Color(240, 80, 0), 750000));
+	lightsSources.push_back(Light(Vector3(-100, 300, -150), Color(240, 80, 0), 750000, 10.0f));
 
 	image.resize(camera.width * camera.height * 4);
+
+	int nbRayPerPoints = 5;
 
 	for (unsigned x = 0; x < camera.width; x++) {
 		for (unsigned y = 0; y < camera.height; y++) {
@@ -173,14 +181,20 @@ int main() {
 
 			Vector3 point = Vector3(camera.position.x + x, camera.position.y + y, camera.position.z);
 
-			Ray r = Ray(point, camera.GetNormalAtPoint(point));
+			for (int i = 0; i < nbRayPerPoints; i++){
 
-			float distanceFirstSphere;
-			int closestSphereIndex = hit_spheres(r, &distanceFirstSphere);
+				Vector3 offset = Vector3::random(-1, 1);
 
-			if (closestSphereIndex != -1) { // There is an intersection with a sphere
-				Vector3 ptIntersection = Vector3(distanceFirstSphere * camera.GetNormalAtPoint(point).x + x + camera.position.x, distanceFirstSphere * camera.GetNormalAtPoint(point).y + y + camera.position.y, distanceFirstSphere * camera.GetNormalAtPoint(point).z + camera.position.z);
-				colXY = manageLightReflection(point, ptIntersection, spheres[closestSphereIndex], index);
+				Ray r = Ray(point, camera.GetNormalAtPoint(point) + offset);
+
+				float distanceFirstSphere;
+				int closestSphereIndex = hit_spheres(r, &distanceFirstSphere);
+
+				if (closestSphereIndex != -1) { // There is an intersection with a sphere
+					Vector3 ptIntersection = Vector3(distanceFirstSphere * camera.GetNormalAtPoint(point).x + x + camera.position.x, distanceFirstSphere * camera.GetNormalAtPoint(point).y + y + camera.position.y, distanceFirstSphere * camera.GetNormalAtPoint(point).z + camera.position.z);
+					colXY = manageLightReflection(point, ptIntersection, spheres[closestSphereIndex], index);
+				}
+
 			}
 
 			setColor(image, index, colXY.Clamp255());

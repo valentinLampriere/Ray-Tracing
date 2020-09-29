@@ -32,6 +32,12 @@ Vector3 Vector3::cross(Vector3 v) {
 Vector3 Vector3::normalized() {
 	return normalize(*this);
 }
+Vector3 Vector3::random(float min, float max) {
+	std::random_device rd;
+	std::mt19937 e2(rd());
+	std::uniform_real_distribution<> dist(min, max);
+	return Vector3(dist(e2), dist(e2), dist(e2));
+}
 Vector3 Vector3::operator+(const Vector3 v) {
 	return Vector3(this->x + v.x, this->y + v.y, this->z + v.z);
 }

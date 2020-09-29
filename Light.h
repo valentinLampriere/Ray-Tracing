@@ -11,8 +11,9 @@ public:
 	Vector3 position;
 	Color color;
 	float intensity;
+	float radius;
 
-	Light(Vector3 pos, Color c, float intensity);
+	Light(Vector3 pos, Color c, float intensity, float radius);
 
 	Color GetColor();
 };
