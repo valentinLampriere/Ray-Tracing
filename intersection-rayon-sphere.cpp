@@ -16,7 +16,6 @@ std::vector<unsigned char> image;
 
 //unsigned width = 512, height = 512;
 
-
 float hit_sphere(Sphere sphere, Ray ray) {
 	Vector3 oc = ray.origin - sphere.position;
 	float a = Vector3::dot(ray.direction, ray.direction);
@@ -75,7 +74,7 @@ Color calcLuminosityAtPoint(Vector3 point, Sphere s, Light l) {
 
 	Vector3 dir = (l.position - point).normalized();
 
-	Ray _r = Ray(point + dir * 0.01f, dir);
+	Ray _r = Ray(point + dir * 0.05f, dir);
 
 	float distance2 = (l.position - point).lengthSquare();
 
@@ -99,17 +98,17 @@ Color reflectRay(Ray ray, Sphere sphere, Vector3 point, int index, int depth = 0
 
 	Vector3 normale = sphere.normaleAtPoint(point);
 	Vector3 directionNewRay = (normale * 2 * Vector3::dot(Vector3() - ray.direction, normale) + ray.direction).normalized();
-	Ray newRay = Ray(point + directionNewRay , directionNewRay);
+	Ray newRay = Ray(point + directionNewRay, directionNewRay);
 	float distance;
 	int indexSphere = hit_spheres(newRay, &distance);
 	if (indexSphere == -1) {
 		return Color(0, 0, 0);
 	} else {
-		if (sphere != spheres[indexSphere] && spheres[indexSphere].isMirror) {
-			return reflectRay(newRay, spheres[indexSphere], point + directionNewRay * distance, index, depth + 1);
+		if (spheres[indexSphere].isMirror) {
+			return reflectRay(newRay, spheres[indexSphere], point + directionNewRay * distance + directionNewRay, index, depth + 1);
 		}
 		else {
-			return manageLightReflection(ray.origin, ray.origin + ray.direction * distance, spheres[indexSphere], index);
+			return manageLightReflection(ray.origin, point + directionNewRay * distance, spheres[indexSphere], index);
 		}
 	}
 }
@@ -126,21 +125,18 @@ Color manageLightReflection(Vector3 pointOrigin, Vector3 pointIntersection, Sphe
 
 			Vector3 dir = (aLight.position - pointIntersection).normalized();
 
-			Ray _r = Ray(pointIntersection + dir * -0.01f, dir);
+			Ray _r = Ray(pointIntersection + dir * -0.05f, dir);
 			for (Sphere& _aSphere : spheres) {
 				if (_aSphere != s) {
 					float dist_otherSphere = hit_sphere(_aSphere, _r);
 					if (dist_otherSphere >= 0) { // If the ray hits another sphere
-						//colXY = Color(0, 0, 0);
 						setColor(image, index, Color(0, 0, 0));
 					}
 				}
 			}
-
-			colXY = colXY + s.color * 0.05f;
+			colXY = colXY + s.color * 0.1f;
 		}
 	} else {
-		//cout << pointIntersection << " - " << pointOrigin << "\n";
 		Ray ray = Ray(pointOrigin, (pointIntersection - pointOrigin).normalized());
 		colXY = colXY + reflectRay(ray, s, pointIntersection, index);
 	}
@@ -149,18 +145,23 @@ Color manageLightReflection(Vector3 pointOrigin, Vector3 pointIntersection, Sphe
 
 int main() {
 	// ADD A CAMERA
-	Camera camera = Camera(512, 512, 1000);
+	Camera camera = Camera(1024, 1024, 2000);
 
 	// ADD SPHERES
-	spheres.push_back(Sphere(Vector3(256, 10512, 0), 10000, Color(0, 0, 0))); // ground
-	spheres.push_back(Sphere(Vector3(256, 256, 400), 100, true));
-	spheres.push_back(Sphere(Vector3(175, 432, 222), 80, Color(0, 0, 255)));
-	spheres.push_back(Sphere(Vector3(400, 175, 175), 40, Color(255, 255, 0)));
+	spheres.push_back(Sphere(Vector3(512, 101024, 0), 100000, Color(255, 200, 0))); // ground
+	spheres.push_back(Sphere(Vector3(101050, 512, 5000), 100000, Color(215, 205, 210))); // wall right
+	spheres.push_back(Sphere(Vector3(512, 512, 101200), 100000, Color(215, 205, 210))); // wall back
+	spheres.push_back(Sphere(Vector3(512, 512, 350), 200, true));
+	spheres.push_back(Sphere(Vector3(600, 512, -1050), 1000, true));
+	spheres.push_back(Sphere(Vector3(750, 864, 800), 160, Color(0, 255, 0)));
+	spheres.push_back(Sphere(Vector3(350, 864, 300), 160, Color(0, 0, 255)));
+	spheres.push_back(Sphere(Vector3(650, 900, 150), 100, true));
+	spheres.push_back(Sphere(Vector3(800, 350, 300), 80, Color(255, 255, 0)));
 
 	// ADD LIGHTS
-	lightsSources.push_back(Light(Vector3(216, 0, 222), Color(255, 255, 50), 400000));
-	lightsSources.push_back(Light(Vector3(650, 200, 90), Color(0, 200, 255), 180000));
-	lightsSources.push_back(Light(Vector3(-50, 150, 133), Color(240, 80, 0), 200000));
+	lightsSources.push_back(Light(Vector3(200, -200, 400), Color(255, 255, 255), 2000000));
+	//lightsSources.push_back(Light(Vector3(1250, 500, 150), Color(0, 200, 255), 800000));
+	lightsSources.push_back(Light(Vector3(-100, 300, -150), Color(240, 80, 0), 750000));
 
 	image.resize(camera.width * camera.height * 4);
 
