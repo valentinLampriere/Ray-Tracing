@@ -40,8 +40,8 @@ public:
 			cout << err + "\n";
 		}
 	}
-	static Vector3 random(float min, float max);
 	Vector3 normalized();
+
 	Vector3 operator+(const Vector3 v);
 	Vector3 operator+(float f);
 	Vector3 operator-(const Vector3 v);
