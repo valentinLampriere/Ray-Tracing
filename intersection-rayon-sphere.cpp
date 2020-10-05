@@ -125,19 +125,16 @@ Color manageLightReflection(Vector3 pointOrigin, Vector3 pointIntersection, Sphe
 	Color colXY = Color(0, 0, 0);
 
 	if (s.isMirror == false) {
-		int nbRay = 5;
+		int nbRay = 20;
 		for (Light& aLight : lightsSources) {
 
 			Color colorALight = Color();
 			for (int i = 0; i < nbRay; i++) {
-				//cout << random() << "\n";
 				Vector3 offset = Vector3(random(), random(), random()) * aLight.position * 0.4f;
 				colorALight = colorALight + calcLuminosityAtPoint(pointIntersection, s, aLight.position + offset, aLight.GetColor());
 			}
 			colorALight = colorALight / nbRay;
 			colXY = colXY + colorALight;
-			
-			//colXY = colXY + calcLuminosityAtPoint(pointIntersection, s, aLight.position, aLight.GetColor());
 
 			Vector3 dir = (aLight.position - pointIntersection).normalized();
 
@@ -162,7 +159,7 @@ Color manageLightReflection(Vector3 pointOrigin, Vector3 pointIntersection, Sphe
 
 int main() {
 	// ADD A CAMERA
-	Camera camera = Camera(1024, 1024, 2000);
+	Camera camera = Camera(512, 512, 1000, Vector3(256,512,0));
 
 	// ADD SPHERES
 	spheres.push_back(Sphere(Vector3(512, 101024, 0), 100000, Color(255, 200, 0))); // Ground
@@ -177,24 +174,24 @@ int main() {
 	spheres.push_back(Sphere(Vector3(800, 350, 300), 80, Color(255, 255, 0)));
 
 	// ADD LIGHTS
-	lightsSources.push_back(Light(Vector3(200, -200, 400), Color(255, 255, 255), 2000000, 200.0f));
+	lightsSources.push_back(Light(Vector3(200, -200, 400), Color(255, 255, 255), 4000000, 200.0f));
 	//lightsSources.push_back(Light(Vector3(1250, 500, 150), Color(0, 200, 255), 800000));
-	lightsSources.push_back(Light(Vector3(-100, 300, -150), Color(240, 80, 0), 750000, 1.0f));
+	lightsSources.push_back(Light(Vector3(-100, 300, -150), Color(240, 80, 0), 1500000, 1.0f));
 
 	image.resize(camera.width * camera.height * 4);
 
 	for (unsigned x = 0; x < camera.width; x++) {
 		for (unsigned y = 0; y < camera.height; y++) {
 			int index = 4 * camera.width * y + 4 * x;
-			int nbRay = 5;
+			int nbRay = 200;
 			Color colXY = Color(0, 0, 0);
 
 			for (int i = 0; i < nbRay; i++) {
-				//Vector3 offset = Vector3(random(), random(), random());
+				Vector3 offset = Vector3(random(), random(), random());
 				Vector3 point = Vector3(camera.position.x + x, camera.position.y + y, camera.position.z);
 
 				//Ray r = Ray(point, camera.GetNormalAtPoint(point));
-				Ray r = Ray(point, (point - camera.origin).normalized());
+				Ray r = Ray(point + offset, (point + offset - camera.origin).normalized());
 
 				float distanceFirstSphere;
 				int closestSphereIndex = hit_spheres(r, &distanceFirstSphere);
