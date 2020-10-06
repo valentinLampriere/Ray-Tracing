@@ -1,6 +1,7 @@
 #include <iostream>
 #include <optional>
 #include "Sphere.h"
+#include "Box.h"
 #include "Ray.h"
 #include "Light.h"
 #include "Camera.h"
@@ -10,6 +11,7 @@
 #include <math.h>
 
 std::vector<Sphere> spheres;
+std::vector<Box> boxes;
 std::vector<Light> lightsSources;
 
 std::vector<unsigned char> image;
@@ -42,6 +44,36 @@ float hit_sphere(Sphere sphere, Ray ray) {
 		return -1;
 	}
 }
+
+int hit_box(Box box, Ray ray, float* t) {
+	Vector3 dirfrac = (1 / ray.direction.x, 1 / ray.direction.y, 1 / ray.direction.z);
+	float t1 = (box.coord1.x - ray.origin.x) * dirfrac.x;
+	float t2 = (box.coord2.x - ray.origin.x) * dirfrac.x;
+	float t3 = (box.coord1.y - ray.origin.y) * dirfrac.y;
+	float t4 = (box.coord2.y - ray.origin.y) * dirfrac.y;
+	float t5 = (box.coord1.z - ray.origin.z) * dirfrac.z;
+	float t6 = (box.coord2.z - ray.origin.z) * dirfrac.z;
+
+	float tmin = max(max(min(t1, t2), min(t3, t4)), min(t5, t6));
+	float tmax = min(min(max(t1, t2), max(t3, t4)), max(t5, t6));
+	// if tmax < 0, ray (line) is intersecting AABB, but the whole AABB is behind us
+	if (tmax < 0)
+	{
+		*t = tmax;
+		return false;
+	}
+
+	// if tmin > tmax, ray doesn't intersect AABB
+	if (tmin > tmax)
+	{
+		*t = tmax;
+		return false;
+	}
+
+	*t = tmin;
+	return true;
+}
+
 
 int hit_spheres(Ray ray, float* distance) {
 	int closeSphereIndex = -1;
@@ -162,9 +194,9 @@ int main() {
 	Camera camera = Camera(512, 512, 1000, Vector3(256,512,0));
 
 	// ADD SPHERES
-	spheres.push_back(Sphere(Vector3(512, 101024, 0), 100000, Color(255, 200, 0))); // Ground
-	spheres.push_back(Sphere(Vector3(101050, 512, 5000), 100000, Color(215, 205, 210))); // Wall right
-	spheres.push_back(Sphere(Vector3(512, 512, 101200), 100000, Color(215, 205, 210))); // Wall back
+	//spheres.push_back(Sphere(Vector3(512, 101024, 0), 100000, Color(255, 200, 0))); // Ground
+	//spheres.push_back(Sphere(Vector3(101050, 512, 5000), 100000, Color(215, 205, 210))); // Wall right
+	//spheres.push_back(Sphere(Vector3(512, 512, 101200), 100000, Color(215, 205, 210))); // Wall back
 
 	spheres.push_back(Sphere(Vector3(512, 512, 350), 200, true));
 	spheres.push_back(Sphere(Vector3(600, 512, -1050), 1000, true));
@@ -179,8 +211,15 @@ int main() {
 
 	image.resize(camera.width * camera.height * 4);
 
+	for (int i = 0; i < spheres.size(); i ++) {
+		Vector3 coord1 = Vector3(spheres[i].position.x - spheres[i].radius, spheres[i].position.y - spheres[i].radius, spheres[i].position.z - spheres[i].radius);
+		Vector3 coord2 = Vector3(spheres[i].position.x + spheres[i].radius, spheres[i].position.y + spheres[i].radius, spheres[i].position.z + spheres[i].radius);
+		boxes.push_back(Box(coord1, coord2));
+	}
+
 	for (unsigned x = 0; x < camera.width; x++) {
 		for (unsigned y = 0; y < camera.height; y++) {
+
 			int index = 4 * camera.width * y + 4 * x;
 			int nbRay = 100;
 			Color colXY = Color(0, 0, 0);
