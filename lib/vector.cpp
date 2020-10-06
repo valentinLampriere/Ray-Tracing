@@ -31,6 +31,12 @@ Vector3 Vector3::cross(Vector3 v) {
 Vector3 Vector3::normalized() {
 	return normalize(*this);
 }
+Vector3 Vector3::min(const Vector3 v) {
+	return Vector3::min(*this, v);
+}
+Vector3 Vector3::max(const Vector3 v) {
+	return Vector3::max(*this, v);
+}
 Vector3 Vector3::operator+(const Vector3 v) {
 	return Vector3(this->x + v.x, this->y + v.y, this->z + v.z);
 }

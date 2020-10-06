@@ -223,16 +223,8 @@ int main() {
 			int index = 4 * camera.width * y + 4 * x;
 			int nbRay = 100;
 			Color colXY = Color(0, 0, 0);
-
-			Vector3 point = Vector3(camera.position.x + x, camera.position.y + y, camera.position.z);
-			Ray r = Ray(point, (point - camera.origin).normalized());
-			for (int i = 0; i < boxes.size(); i++) {
-				float d;
-				if (hit_box(boxes[i], r, &d)) {
-					colXY = Color(d, d, d);
-				}
-			}
-			/*for (int i = 0; i < nbRay; i++) {
+			
+			for (int i = 0; i < nbRay; i++) {
 				Vector3 offset = Vector3(random() * 0.01f, random() * 0.01f, random() * 0.01f);
 				Vector3 point = Vector3(camera.position.x + x, camera.position.y + y, camera.position.z);
 
@@ -246,7 +238,7 @@ int main() {
 					colXY = colXY + manageLightReflection(point, ptIntersection, spheres[closestSphereIndex], index);
 				}
 			}
-			colXY = colXY / nbRay;*/
+			colXY = colXY / nbRay;
 			setColor(image, index, colXY.Clamp255());
 		}
 	}
