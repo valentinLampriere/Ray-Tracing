@@ -11,7 +11,6 @@
 #include <math.h>
 
 std::vector<Sphere> spheres;
-std::vector<Box> boxes;
 std::vector<Light> lightsSources;
 
 std::vector<unsigned char> image;
@@ -25,68 +24,23 @@ float random() {
 	std::uniform_real_distribution<> dist(-1, 1);
 	return dist(e2);
 }
-
-float hit_sphere(Sphere sphere, Ray ray) {
-	Vector3 oc = ray.origin - sphere.position;
-	float a = Vector3::dot(ray.direction, ray.direction);
-	float b = 2.0 * Vector3::dot(oc, ray.direction);
-	float c = Vector3::dot(oc, oc) - sphere.radius * sphere.radius;
-	float discriminant = b * b - 4 * a * c;
-	if (discriminant < 0)
-		return -1; // Use proper way to return bad value ( std::optional )
-	else {
-		float t1 = (-b - sqrt(discriminant)) / (2.0 * a);
-		float t2 = (-b + sqrt(discriminant)) / (2.0 * a);
-		if (t1 > 0)
-			return t1;
-		if (t2 > 0)
-			return t2;
-		return -1;
-	}
+float random(float min, float max) {
+	std::uniform_real_distribution<> dist(min, max);
+	return dist(e2);
 }
-
-int hit_box(Box box, Ray ray, float* t) {
-	Vector3 dirfrac = Vector3(1 / ray.direction.x, 1 / ray.direction.y, 1 / ray.direction.z);
-	float t1 = (box.coord1.x - ray.origin.x) * dirfrac.x;
-	float t2 = (box.coord2.x - ray.origin.x) * dirfrac.x;
-	float t3 = (box.coord1.y - ray.origin.y) * dirfrac.y;
-	float t4 = (box.coord2.y - ray.origin.y) * dirfrac.y;
-	float t5 = (box.coord1.z - ray.origin.z) * dirfrac.z;
-	float t6 = (box.coord2.z - ray.origin.z) * dirfrac.z;
-
-	float tmin = max(max(min(t1, t2), min(t3, t4)), min(t5, t6));
-	float tmax = min(min(max(t1, t2), max(t3, t4)), max(t5, t6));
-	// if tmax < 0, ray (line) is intersecting AABB, but the whole AABB is behind us
-	if (tmax < 0)
-	{
-		*t = tmax;
-		return false;
-	}
-
-	// if tmin > tmax, ray doesn't intersect AABB
-	if (tmin > tmax)
-	{
-		*t = tmax;
-		return false;
-	}
-
-	*t = tmin;
-	return true;
-}
-
 
 int hit_spheres(Ray ray, float* distance) {
 	int closeSphereIndex = -1;
 	for (int i = 0; i < spheres.size(); i ++) {
-		float minDistance = hit_sphere(spheres[i], ray);
-		if (minDistance != -1) {
+		float d;
+		if (spheres[i].rayHit(ray, &d)) {
 			if (closeSphereIndex == -1) {
 				closeSphereIndex = i;
-				*distance = minDistance;
+				*distance = d;
 			} else {
-				if (minDistance < *distance) {
+				if (d < *distance) {
 					closeSphereIndex = i;
-					*distance = minDistance;
+					*distance = d;
 				}
 			}
 		}
@@ -119,9 +73,9 @@ Color calcLuminosityAtPoint(Vector3 point, Sphere s, Vector3 lightPosition, Colo
 	float distance2 = (lightPosition - point).lengthSquare();
 
 	for (Sphere& _aSphere : spheres) {
-		float dist_otherSphere = hit_sphere(_aSphere, _r);
-		
-		if (dist_otherSphere >= 0 && dist_otherSphere * dist_otherSphere < distance2) { // If the ray hits another sphere
+		//float dist_otherSphere = hit_sphere(_aSphere, _r);
+		float dist;
+		if (_aSphere.rayHit(_r, &dist) && dist * dist < distance2) { // If the ray hits another sphere
 			return Color(0,0,0);
 		}
 	}
@@ -157,7 +111,7 @@ Color manageLightReflection(Vector3 pointOrigin, Vector3 pointIntersection, Sphe
 	Color colXY = Color(0, 0, 0);
 
 	if (s.isMirror == false) {
-		int nbRay = 10;
+		int nbRay = 5;
 		for (Light& aLight : lightsSources) {
 
 			Color colorALight = Color();
@@ -173,8 +127,9 @@ Color manageLightReflection(Vector3 pointOrigin, Vector3 pointIntersection, Sphe
 			Ray _r = Ray(pointIntersection + dir * -0.05f, dir);
 			for (Sphere& _aSphere : spheres) {
 				if (_aSphere != s) {
-					float dist_otherSphere = hit_sphere(_aSphere, _r);
-					if (dist_otherSphere >= 0) { // If the ray hits another sphere
+					//float dist_otherSphere = hit_sphere(_aSphere, _r);
+					float dist;
+					if (_aSphere.rayHit(_r, &dist)) { // If the ray hits another sphere
 						colXY = colXY + Color(0, 0, 0);
 						//setColor(image, index, Color(0, 0, 0));
 					}
@@ -189,15 +144,30 @@ Color manageLightReflection(Vector3 pointOrigin, Vector3 pointIntersection, Sphe
 	return colXY;
 }
 
+Box generateSpheres(Vector3 origin, float width, float height, int amountOfSpheres) {
+	Vector3 minCoord = Vector3(width / 2 + origin.x, height / 2 + origin.y, 200);
+	Vector3 maxCoord = Vector3(-width / 2 + origin.x, -height / 2 + origin.y, 0);
+	for (int i = 0; i < amountOfSpheres; i++) {
+		float radius = random(5, 25);
+		float x = random(-width/2 + origin.x, width/2 + origin.x);
+		float y = random(-height/2 + origin.y, height/2 + origin.y);
+		float z = random(radius, 200);
+		minCoord = Vector3::min(minCoord, Vector3(x, y, z));
+		maxCoord = Vector3::max(maxCoord, Vector3(x, y, z));
+		spheres.push_back(Sphere(Vector3(x, y, z), radius));
+	}
+	return Box(minCoord, maxCoord);
+}
+
 int main() {
 	// ADD A CAMERA
-	Camera camera = Camera(512, 512, 1000, Vector3(256,512,0));
+	Camera camera = Camera(512, 512, 500, Vector3(256,256,0));
 
 	// ADD SPHERES
 	//spheres.push_back(Sphere(Vector3(512, 101024, 0), 100000, Color(255, 200, 0))); // Ground
 	//spheres.push_back(Sphere(Vector3(101050, 512, 5000), 100000, Color(215, 205, 210))); // Wall right
 	//spheres.push_back(Sphere(Vector3(512, 512, 101200), 100000, Color(215, 205, 210))); // Wall back
-
+	
 	spheres.push_back(Sphere(Vector3(512, 512, 350), 200, true));
 	spheres.push_back(Sphere(Vector3(600, 512, -1050), 1000, true));
 	spheres.push_back(Sphere(Vector3(750, 864, 800), 160, Color(0, 255, 0)));
@@ -205,25 +175,32 @@ int main() {
 	spheres.push_back(Sphere(Vector3(650, 900, 150), 100, true));
 	spheres.push_back(Sphere(Vector3(800, 350, 300), 80, Color(255, 255, 0)));
 
+	//Box b = generateSpheres(camera.origin, camera.width, camera.height, 1000);
+	
+	//cout << b.coord1 << " / " << b.coord2 << "\n";
+
 	// ADD LIGHTS
 	lightsSources.push_back(Light(Vector3(200, -200, 400), Color(255, 255, 255), 2000000, 200.0f));
 	lightsSources.push_back(Light(Vector3(-100, 300, -150), Color(240, 80, 0), 750000, 1.0f));
 
 	image.resize(camera.width * camera.height * 4);
 
-	for (int i = 0; i < spheres.size(); i ++) {
-		Vector3 coord1 = Vector3(spheres[i].position.x - spheres[i].radius, spheres[i].position.y - spheres[i].radius, spheres[i].position.z - spheres[i].radius);
-		Vector3 coord2 = Vector3(spheres[i].position.x + spheres[i].radius, spheres[i].position.y + spheres[i].radius, spheres[i].position.z + spheres[i].radius);
-		boxes.push_back(Box(coord1, coord2));
-	}
-
 	for (unsigned x = 0; x < camera.width; x++) {
 		for (unsigned y = 0; y < camera.height; y++) {
 
 			int index = 4 * camera.width * y + 4 * x;
-			int nbRay = 100;
+			int nbRay = 10;
 			Color colXY = Color(0, 0, 0);
 			
+			/*Vector3 point = Vector3(camera.position.x + x, camera.position.y + y, camera.position.z);
+			Ray r = Ray(point, (point - camera.origin).normalized());
+			for (int i = 0; i < spheres.size(); i++) {
+				float d;
+				if (spheres[i].getBox().rayHit(r, &d)) {
+					colXY = Color(d, d, d);
+				}
+			}*/
+
 			for (int i = 0; i < nbRay; i++) {
 				Vector3 offset = Vector3(random() * 0.01f, random() * 0.01f, random() * 0.01f);
 				Vector3 point = Vector3(camera.position.x + x, camera.position.y + y, camera.position.z);
@@ -239,6 +216,8 @@ int main() {
 				}
 			}
 			colXY = colXY / nbRay;
+
+
 			setColor(image, index, colXY.Clamp255());
 		}
 	}
