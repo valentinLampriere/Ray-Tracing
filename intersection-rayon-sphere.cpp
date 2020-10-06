@@ -46,7 +46,7 @@ float hit_sphere(Sphere sphere, Ray ray) {
 }
 
 int hit_box(Box box, Ray ray, float* t) {
-	Vector3 dirfrac = (1 / ray.direction.x, 1 / ray.direction.y, 1 / ray.direction.z);
+	Vector3 dirfrac = Vector3(1 / ray.direction.x, 1 / ray.direction.y, 1 / ray.direction.z);
 	float t1 = (box.coord1.x - ray.origin.x) * dirfrac.x;
 	float t2 = (box.coord2.x - ray.origin.x) * dirfrac.x;
 	float t3 = (box.coord1.y - ray.origin.y) * dirfrac.y;
@@ -224,7 +224,15 @@ int main() {
 			int nbRay = 100;
 			Color colXY = Color(0, 0, 0);
 
-			for (int i = 0; i < nbRay; i++) {
+			Vector3 point = Vector3(camera.position.x + x, camera.position.y + y, camera.position.z);
+			Ray r = Ray(point, (point - camera.origin).normalized());
+			for (int i = 0; i < boxes.size(); i++) {
+				float d;
+				if (hit_box(boxes[i], r, &d)) {
+					colXY = Color(d, d, d);
+				}
+			}
+			/*for (int i = 0; i < nbRay; i++) {
 				Vector3 offset = Vector3(random() * 0.01f, random() * 0.01f, random() * 0.01f);
 				Vector3 point = Vector3(camera.position.x + x, camera.position.y + y, camera.position.z);
 
@@ -238,7 +246,7 @@ int main() {
 					colXY = colXY + manageLightReflection(point, ptIntersection, spheres[closestSphereIndex], index);
 				}
 			}
-			colXY = colXY / nbRay;
+			colXY = colXY / nbRay;*/
 			setColor(image, index, colXY.Clamp255());
 		}
 	}
