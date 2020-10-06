@@ -1,6 +1,5 @@
 #include "lib/vector.h"
 #include "color.h"
-#include "Box.h"
 #include "Ray.h"
 
 #ifndef SPHERE_H
