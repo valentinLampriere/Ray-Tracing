@@ -1,5 +1,6 @@
 #include "lib/vector.h"
 #include "Ray.h"
+#include "Sphere.h"
 
 #ifndef BOX_H
 #define BOX_H
@@ -9,6 +10,8 @@ using namespace std;
 class Box {
 public:
 	Vector3 coord1, coord2;
+	//Box& parentBox;
+	std::vector<Sphere> spheres;
 
 	Box(Vector3 c1, Vector3 c2);
 	static Box Union(const Box b1, const Box b2) {
@@ -17,6 +20,7 @@ public:
 		return Box(min, max);
 	}
 	Box Union(Box b);
+	void split(Box& b1, Box& b2);
 	bool rayHit(Ray r, float* t);
 };
 

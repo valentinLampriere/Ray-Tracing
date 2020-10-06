@@ -1,5 +1,6 @@
 #include <iostream>
 #include <optional>
+#include <map>
 #include "Sphere.h"
 #include "Box.h"
 #include "Ray.h"
@@ -159,14 +160,16 @@ Box generateSpheres(Vector3 origin, float width, float height, int amountOfSpher
 	return Box(minCoord, maxCoord);
 }
 
+
 int main() {
 	// ADD A CAMERA
 	Camera camera = Camera(512, 512, 500, Vector3(256,256,0));
 
 	// ADD SPHERES
-	//spheres.push_back(Sphere(Vector3(512, 101024, 0), 100000, Color(255, 200, 0))); // Ground
-	//spheres.push_back(Sphere(Vector3(101050, 512, 5000), 100000, Color(215, 205, 210))); // Wall right
-	//spheres.push_back(Sphere(Vector3(512, 512, 101200), 100000, Color(215, 205, 210))); // Wall back
+	/*
+	spheres.push_back(Sphere(Vector3(512, 101024, 0), 100000, Color(255, 200, 0))); // Ground
+	spheres.push_back(Sphere(Vector3(101050, 512, 5000), 100000, Color(215, 205, 210))); // Wall right
+	spheres.push_back(Sphere(Vector3(512, 512, 101200), 100000, Color(215, 205, 210))); // Wall back
 	
 	spheres.push_back(Sphere(Vector3(512, 512, 350), 200, true));
 	spheres.push_back(Sphere(Vector3(600, 512, -1050), 1000, true));
@@ -174,10 +177,15 @@ int main() {
 	spheres.push_back(Sphere(Vector3(350, 864, 300), 160, Color(0, 0, 255)));
 	spheres.push_back(Sphere(Vector3(650, 900, 150), 100, true));
 	spheres.push_back(Sphere(Vector3(800, 350, 300), 80, Color(255, 255, 0)));
+	*/
 
-	//Box b = generateSpheres(camera.origin, camera.width, camera.height, 1000);
-	
-	//cout << b.coord1 << " / " << b.coord2 << "\n";
+	map<int, Box> boxes;
+	Box b = generateSpheres(camera.origin, camera.width, camera.height, 1000);
+
+	Box b1 = b;
+	Box b2 = b;
+
+	b.split(b1, b2);
 
 	// ADD LIGHTS
 	lightsSources.push_back(Light(Vector3(200, -200, 400), Color(255, 255, 255), 2000000, 200.0f));
@@ -216,7 +224,7 @@ int main() {
 				}
 			}
 			colXY = colXY / nbRay;
-
+			
 
 			setColor(image, index, colXY.Clamp255());
 		}

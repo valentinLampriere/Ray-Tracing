@@ -21,19 +21,33 @@ bool Box::rayHit(Ray ray, float* t) {
 	float tmin = max(max(min(t1, t2), min(t3, t4)), min(t5, t6));
 	float tmax = min(min(max(t1, t2), max(t3, t4)), max(t5, t6));
 	// if tmax < 0, ray (line) is intersecting AABB, but the whole AABB is behind us
-	if (tmax < 0)
-	{
+	if (tmax < 0) {
 		*t = tmax;
 		return false;
 	}
 
 	// if tmin > tmax, ray doesn't intersect AABB
-	if (tmin > tmax)
-	{
+	if (tmin > tmax) {
 		*t = tmax;
 		return false;
 	}
 
 	*t = tmin;
 	return true;
+}
+
+void Box::split(Box& b1, Box& b2) {
+	float sizeX = this->coord2.x - this->coord1.x;
+	float sizeY = this->coord2.y - this->coord1.y;
+	float sizeZ = this->coord2.z - this->coord1.z;
+	if (sizeX > sizeY && sizeX > sizeZ) {
+		b1 = Box(this->coord1, Vector3(this->coord2.x / 2, this->coord2.y, this->coord2.z));
+		b2 = Box(Vector3(this->coord2.x / 2, this->coord1.y, this->coord1.z), this->coord2);
+	} else if (sizeY > sizeZ) {
+		b1 = Box(this->coord1, Vector3(this->coord2.x, this->coord2.y / 2, this->coord2.z));
+		b2 = Box(Vector3(this->coord1.x, this->coord2.y / 2, this->coord1.z), this->coord2);
+	} else {
+		b1 = Box(this->coord1, Vector3(this->coord2.x, this->coord2.y, this->coord2.z / 2));
+		b2 = Box(Vector3(this->coord1.x, this->coord1.y, this->coord2.z / 2), this->coord2);
+	}
 }
