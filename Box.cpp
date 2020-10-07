@@ -41,21 +41,21 @@ void Box::split(Box& b1, Box& b2) {
 	float sizeY = this->coord2.y - this->coord1.y;
 	float sizeZ = this->coord2.z - this->coord1.z;
 	if (sizeX > sizeY && sizeX > sizeZ) {
-		b1 = Box(this->coord1, Vector3(this->coord2.x / 2, this->coord2.y, this->coord2.z));
-		b2 = Box(Vector3(this->coord2.x / 2, this->coord1.y, this->coord1.z), this->coord2);
+		b1 = Box(this->coord1, Vector3((this->coord1.x + this->coord2.x) / 2, this->coord2.y, this->coord2.z));
+		b2 = Box(Vector3((this->coord1.x + this->coord2.x) / 2, this->coord1.y, this->coord1.z), this->coord2);
 	} else if (sizeY > sizeZ) {
-		b1 = Box(this->coord1, Vector3(this->coord2.x, this->coord2.y / 2, this->coord2.z));
-		b2 = Box(Vector3(this->coord1.x, this->coord2.y / 2, this->coord1.z), this->coord2);
+		b1 = Box(this->coord1, Vector3(this->coord2.x, (this->coord1.y + this->coord2.y) / 2, this->coord2.z));
+		b2 = Box(Vector3(this->coord1.x, (this->coord1.y + this->coord2.y) / 2, this->coord1.z), this->coord2);
 	} else {
-		b1 = Box(this->coord1, Vector3(this->coord2.x, this->coord2.y, this->coord2.z / 2));
-		b2 = Box(Vector3(this->coord1.x, this->coord1.y, this->coord2.z / 2), this->coord2);
+		b1 = Box(this->coord1, Vector3(this->coord2.x, this->coord2.y, (this->coord1.z + this->coord2.z) / 2));
+		b2 = Box(Vector3(this->coord1.x, this->coord1.y, (this->coord1.z + this->coord2.z) / 2), this->coord2);
 	}
 }
 
 void Box::settingSpheres(std::vector<Sphere> allSpheres) {
 	for (int i = 0; i < allSpheres.size(); i++) {
 		if (allSpheres[i].position.x >= this->coord1.x && allSpheres[i].position.y >= this->coord1.y && allSpheres[i].position.z >= this->coord1.z && allSpheres[i].position.x <= this->coord2.x && allSpheres[i].position.y <= this->coord2.y && allSpheres[i].position.z <= this->coord2.z) {
-			spheres.push_back(allSpheres[i]);
+			this->spheres.push_back(allSpheres[i]);
 		}
 	}
 }

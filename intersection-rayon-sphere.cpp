@@ -1,6 +1,5 @@
 #include <iostream>
 #include <optional>
-#include <map>
 #include "Sphere.h"
 #include "Box.h"
 #include "Ray.h"
@@ -13,6 +12,7 @@
 
 std::vector<Sphere> spheres;
 std::vector<Light> lightsSources;
+std::vector<Box> boxes;
 
 std::vector<unsigned char> image;
 
@@ -154,11 +154,43 @@ Box generateSpheres(Vector3 origin, float width, float height, int amountOfSpher
 		float x = random(-width/2 + origin.x, width/2 + origin.x);
 		float y = random(-height/2 + origin.y, height/2 + origin.y);
 		float z = random(radius, 200);
-		minCoord = Vector3::min(minCoord, Vector3(x, y, z));
-		maxCoord = Vector3::max(maxCoord, Vector3(x, y, z));
+		minCoord = Vector3::min(minCoord, Vector3(x - radius, y - radius, z - radius));
+		maxCoord = Vector3::max(maxCoord, Vector3(x + radius, y + radius, z + radius));
 		spheres.push_back(Sphere(Vector3(x, y, z), radius));
 	}
 	return Box(minCoord, maxCoord);
+}
+
+void populateBoxes(Box aBox) {
+
+	aBox.settingSpheres(spheres);
+	if (aBox.spheres.size() <= 5) {
+		boxes.push_back(aBox);
+		return;
+	}
+
+	Box b1 = aBox;
+	Box b2 = aBox;
+	aBox.split(b1, b2);
+	populateBoxes(b1);
+	populateBoxes(b2);
+
+	/*if (b1.settingSpheres(aBox.spheres) > 5) {
+		populateBoxes(b1);
+	} else {
+		boxes.push_back(b1);
+	}
+	if (b2.settingSpheres(aBox.spheres) > 5) {
+		populateBoxes(b2);
+	} else {
+		boxes.push_back(b2);
+	}*/
+}
+
+void printBox(Box b) {
+	cout << "[" << b.spheres.size() << "]";
+	cout << "(" << b.coord1.x << ", " << b.coord1.y << ", " << b.coord1.z << ")";
+	cout << " / (" << b.coord2.x << ", " << b.coord2.y << ", " << b.coord2.z << ")\n";
 }
 
 
@@ -180,10 +212,26 @@ int main() {
 	spheres.push_back(Sphere(Vector3(800, 350, 300), 80, Color(255, 255, 0)));
 	*/
 
-	map<int, Box> boxes;
 	Box b = generateSpheres(camera.origin, camera.width, camera.height, 10000);
+	printBox(b);
+	populateBoxes(b);
 
-	b.settingSpheres(spheres);
+	/*printBox(b);
+	Box b1 = b;
+	Box b2 = b;
+	b.split(b1, b2);
+
+	printBox(b1);
+	//printBox(b2);
+
+	b1.split(b, b2);
+
+	printBox(b);
+	printBox(b2);*/
+
+	//b.settingSpheres(spheres);
+
+	cout << boxes.size() << "\n";
 
 	// ADD LIGHTS
 	lightsSources.push_back(Light(Vector3(200, -200, 400), Color(255, 255, 255), 2000000, 200.0f));
@@ -200,8 +248,8 @@ int main() {
 			
 			Vector3 point = Vector3(camera.position.x + x, camera.position.y + y, camera.position.z);
 			Ray r = Ray(point, (point - camera.origin).normalized());
-
-			for (int i = 0; i < spheres.size(); i++) {
+			
+			/*for (int i = 0; i < spheres.size(); i++) {
 				float d;
 				Vector3 coord1;
 				Vector3 coord2;
@@ -211,7 +259,7 @@ int main() {
 				if (box.rayHit(r, &d)) {
 					colXY = Color(d, d, d);
 				}
-			}
+			}*/
 
 			/*
 			for (int i = 0; i < nbRay; i++) {
