@@ -33,7 +33,7 @@ float random(float min, float max) {
 
 int hit_spheres(Ray ray, float* distance) {
 	int closeSphereIndex = -1;
-	for (int i = 0; i < spheres.size(); i ++) {
+	for (int i = 0; i < spheres.size(); i++) {
 		float d;
 		if (spheres[i].rayHit(ray, &d)) {
 			if (closeSphereIndex == -1) {
@@ -48,6 +48,25 @@ int hit_spheres(Ray ray, float* distance) {
 		}
 	}
 	return closeSphereIndex;
+}
+
+int hit_cubes(Ray ray, float* distance) {
+	int closeCubeIndex = -1;
+	for (int i = 0; i < boxes.size(); i++) {
+		float d;
+		if (boxes[i].rayHit(ray, &d)) {
+			if (closeCubeIndex == -1) {
+				closeCubeIndex = i;
+				*distance = d;
+			} else {
+				if (d < *distance) {
+					closeCubeIndex = i;
+					*distance = d;
+				}
+			}
+		}
+	}
+	return closeCubeIndex;
 }
 
 void encodeOneStep(const char* filename, std::vector<unsigned char>& image, unsigned width, unsigned height) {
@@ -162,7 +181,6 @@ Box generateSpheres(Vector3 origin, float width, float height, int amountOfSpher
 }
 
 void populateBoxes(Box aBox) {
-
 	aBox.settingSpheres(spheres);
 	if (aBox.spheres.size() <= 5) {
 		boxes.push_back(aBox);
@@ -174,17 +192,6 @@ void populateBoxes(Box aBox) {
 	aBox.split(b1, b2);
 	populateBoxes(b1);
 	populateBoxes(b2);
-
-	/*if (b1.settingSpheres(aBox.spheres) > 5) {
-		populateBoxes(b1);
-	} else {
-		boxes.push_back(b1);
-	}
-	if (b2.settingSpheres(aBox.spheres) > 5) {
-		populateBoxes(b2);
-	} else {
-		boxes.push_back(b2);
-	}*/
 }
 
 void printBox(Box b) {
@@ -213,7 +220,6 @@ int main() {
 	*/
 
 	Box b = generateSpheres(camera.origin, camera.width, camera.height, 10000);
-	printBox(b);
 	populateBoxes(b);
 
 	/*printBox(b);
@@ -249,6 +255,11 @@ int main() {
 			Vector3 point = Vector3(camera.position.x + x, camera.position.y + y, camera.position.z);
 			Ray r = Ray(point, (point - camera.origin).normalized());
 			
+			for (int i = 0; i < boxes.size(); i++) {
+				float d;
+				
+			}
+
 			/*for (int i = 0; i < spheres.size(); i++) {
 				float d;
 				Vector3 coord1;
