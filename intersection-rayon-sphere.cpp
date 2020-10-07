@@ -23,12 +23,12 @@ std::default_random_engine generator(10000);
 float random() {
 	std::uniform_real_distribution<> dist(-1, 1);
 	return dist(generator);
-	//return dist(e2); -- Non seeded
+	//return dist(e2); -- Non-seeded
 }
 float random(float min, float max) {
 	std::uniform_real_distribution<> dist(min, max);
 	return dist(generator);
-	//return dist(e2); -- Non seeded
+	//return dist(e2); -- Non-seeded
 }
 
 int hit_spheres(Ray ray, float* distance) {
@@ -50,18 +50,19 @@ int hit_spheres(Ray ray, float* distance) {
 	return closeSphereIndex;
 }
 
-int hit_cubes(Ray ray, float* distance) {
+int hit_cubes(Ray ray) {
 	int closeCubeIndex = -1;
+	float distance;
 	for (int i = 0; i < boxes.size(); i++) {
 		float d;
 		if (boxes[i].rayHit(ray, &d)) {
 			if (closeCubeIndex == -1) {
 				closeCubeIndex = i;
-				*distance = d;
+				distance = d;
 			} else {
-				if (d < *distance) {
+				if (d < distance) {
 					closeCubeIndex = i;
-					*distance = d;
+					distance = d;
 				}
 			}
 		}
@@ -132,12 +133,15 @@ Color manageLightReflection(Vector3 pointOrigin, Vector3 pointIntersection, Sphe
 	Color colXY = Color(0, 0, 0);
 
 	if (s.isMirror == false) {
-		int nbRay = 5;
+		int nbRay = 1;
 		for (Light& aLight : lightsSources) {
 
 			Color colorALight = Color();
 			for (int i = 0; i < nbRay; i++) {
-				Vector3 offset = Vector3(random(), random(), random()) * aLight.position * 0.4f;
+				Vector3 offset = Vector3(0, 0, 0);
+				if(nbRay > 1)
+					Vector3 offset = Vector3(random(), random(), random()) * aLight.position * 0.4f;
+
 				colorALight = colorALight + calcLuminosityAtPoint(pointIntersection, s, aLight.position + offset, aLight.GetColor());
 			}
 			colorALight = colorALight / nbRay;
@@ -157,7 +161,7 @@ Color manageLightReflection(Vector3 pointOrigin, Vector3 pointIntersection, Sphe
 				}
 			}
 		}
-		colXY = colXY + s.color * 0.1f;
+		colXY = colXY + s.color * 0.25f;
 	} else {
 		Ray ray = Ray(pointOrigin, (pointIntersection - pointOrigin).normalized());
 		colXY = colXY + reflectRay(ray, s, pointIntersection, index);
@@ -173,9 +177,14 @@ Box generateSpheres(Vector3 origin, float width, float height, int amountOfSpher
 		float x = random(-width/2 + origin.x, width/2 + origin.x);
 		float y = random(-height/2 + origin.y, height/2 + origin.y);
 		float z = random(radius, 200);
+
+		float R = random(0, 255);
+		float G = random(0, 255);
+		float B = random(0, 255);
+
 		minCoord = Vector3::min(minCoord, Vector3(x - radius, y - radius, z - radius));
 		maxCoord = Vector3::max(maxCoord, Vector3(x + radius, y + radius, z + radius));
-		spheres.push_back(Sphere(Vector3(x, y, z), radius));
+		spheres.push_back(Sphere(Vector3(x, y, z), radius, Color(R, G, B)));
 	}
 	return Box(minCoord, maxCoord);
 }
@@ -219,23 +228,8 @@ int main() {
 	spheres.push_back(Sphere(Vector3(800, 350, 300), 80, Color(255, 255, 0)));
 	*/
 
-	Box b = generateSpheres(camera.origin, camera.width, camera.height, 10000);
+	Box b = generateSpheres(camera.origin, camera.width, camera.height, 100);
 	populateBoxes(b);
-
-	/*printBox(b);
-	Box b1 = b;
-	Box b2 = b;
-	b.split(b1, b2);
-
-	printBox(b1);
-	//printBox(b2);
-
-	b1.split(b, b2);
-
-	printBox(b);
-	printBox(b2);*/
-
-	//b.settingSpheres(spheres);
 
 	cout << boxes.size() << "\n";
 
@@ -256,8 +250,16 @@ int main() {
 			Ray r = Ray(point, (point - camera.origin).normalized());
 			
 			for (int i = 0; i < boxes.size(); i++) {
-				float d;
-				
+				int indexCube = hit_cubes(r);
+				if (indexCube != -1) {
+					float distanceFirstSphere;
+					int closestSphereIndex = hit_spheres(r, &distanceFirstSphere);
+
+					if (closestSphereIndex != -1) { // There is an intersection with a sphere
+						Vector3 ptIntersection = Vector3(distanceFirstSphere * r.direction.x + x + camera.position.x, distanceFirstSphere * r.direction.y + y + camera.position.y, distanceFirstSphere * r.direction.z + camera.position.z);
+						colXY = manageLightReflection(point, ptIntersection, spheres[closestSphereIndex], index);
+					}
+				}
 			}
 
 			/*for (int i = 0; i < spheres.size(); i++) {
@@ -289,6 +291,8 @@ int main() {
 			}
 			colXY = colXY / nbRay;
 			*/
+
+			//cout << "pixel " << index << " = " << colXY.Clamp255() << "\n";
 			
 
 			setColor(image, index, colXY.Clamp255());
