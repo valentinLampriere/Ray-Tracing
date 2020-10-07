@@ -9,7 +9,8 @@ using namespace std;
 class Box {
 public:
 	Vector3 coord1, coord2;
-	//Box& parentBox;
+	Box* childBox1;
+	Box* childBox2;
 	std::vector<Sphere> spheres;
 
 	Box(Vector3 c1, Vector3 c2);
