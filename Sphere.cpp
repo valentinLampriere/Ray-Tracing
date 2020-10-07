@@ -14,10 +14,9 @@ Sphere::Sphere(Vector3 p, float r, bool isMirror) {
 Vector3 Sphere::normaleAtPoint(Vector3 point) {
 	return (point - this->position).normalized();
 }
-Box Sphere::getBox() {
-	Vector3 coord1 = Vector3(position.x - radius, position.y - radius, position.z - radius);
-	Vector3 coord2 = Vector3(position.x + radius, position.y + radius, position.z + radius);
-	return Box(coord1, coord2);
+void Sphere::getBoxCoord(Vector3* coord1, Vector3* coord2) {
+	*coord1 = Vector3(position.x - radius, position.y - radius, position.z - radius);
+	*coord2 = Vector3(position.x + radius, position.y + radius, position.z + radius);
 }
 bool Sphere::rayHit(Ray ray, float* d) {
 	Vector3 oc = ray.origin - this->position;

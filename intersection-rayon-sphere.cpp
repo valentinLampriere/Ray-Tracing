@@ -18,16 +18,17 @@ std::vector<unsigned char> image;
 
 std::random_device rd;
 std::mt19937 e2(rd());
-
-//unsigned width = 512, height = 512;
+std::default_random_engine generator(10000);
 
 float random() {
 	std::uniform_real_distribution<> dist(-1, 1);
-	return dist(e2);
+	return dist(generator);
+	//return dist(e2); -- Non seeded
 }
 float random(float min, float max) {
 	std::uniform_real_distribution<> dist(min, max);
-	return dist(e2);
+	return dist(generator);
+	//return dist(e2); -- Non seeded
 }
 
 int hit_spheres(Ray ray, float* distance) {
@@ -180,12 +181,9 @@ int main() {
 	*/
 
 	map<int, Box> boxes;
-	Box b = generateSpheres(camera.origin, camera.width, camera.height, 1000);
+	Box b = generateSpheres(camera.origin, camera.width, camera.height, 10000);
 
-	Box b1 = b;
-	Box b2 = b;
-
-	b.split(b1, b2);
+	b.settingSpheres(spheres);
 
 	// ADD LIGHTS
 	lightsSources.push_back(Light(Vector3(200, -200, 400), Color(255, 255, 255), 2000000, 200.0f));
@@ -200,15 +198,22 @@ int main() {
 			int nbRay = 10;
 			Color colXY = Color(0, 0, 0);
 			
-			/*Vector3 point = Vector3(camera.position.x + x, camera.position.y + y, camera.position.z);
+			Vector3 point = Vector3(camera.position.x + x, camera.position.y + y, camera.position.z);
 			Ray r = Ray(point, (point - camera.origin).normalized());
+
 			for (int i = 0; i < spheres.size(); i++) {
 				float d;
-				if (spheres[i].getBox().rayHit(r, &d)) {
+				Vector3 coord1;
+				Vector3 coord2;
+				spheres[i].getBoxCoord(&coord1, &coord2);
+				Box box = Box(coord1, coord2);
+				//box.settingSpheres(spheres);
+				if (box.rayHit(r, &d)) {
 					colXY = Color(d, d, d);
 				}
-			}*/
+			}
 
+			/*
 			for (int i = 0; i < nbRay; i++) {
 				Vector3 offset = Vector3(random() * 0.01f, random() * 0.01f, random() * 0.01f);
 				Vector3 point = Vector3(camera.position.x + x, camera.position.y + y, camera.position.z);
@@ -224,6 +229,7 @@ int main() {
 				}
 			}
 			colXY = colXY / nbRay;
+			*/
 			
 
 			setColor(image, index, colXY.Clamp255());

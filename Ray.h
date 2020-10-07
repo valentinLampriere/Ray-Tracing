@@ -1,7 +1,6 @@
-#include "lib/vector.h"
+#pragma once
 
-#ifndef RAY_H
-#define RAY_H
+#include "lib/vector.h"
 
 using namespace std;
 
@@ -12,5 +11,3 @@ public:
 
 	Ray(Vector3 o, Vector3 d);
 };
-
-#endif

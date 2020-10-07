@@ -1,6 +1,6 @@
+#pragma once
+
 #include <iostream>
-#ifndef COLOR_H
-#define COLOR_H
 
 using namespace std;
 
@@ -20,5 +20,3 @@ public:
 		return output;
 	}
 };
-
-#endif

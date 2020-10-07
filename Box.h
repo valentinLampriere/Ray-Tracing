@@ -1,9 +1,8 @@
+#pragma once
+
 #include "lib/vector.h"
 #include "Ray.h"
 #include "Sphere.h"
-
-#ifndef BOX_H
-#define BOX_H
 
 using namespace std;
 
@@ -22,6 +21,5 @@ public:
 	Box Union(Box b);
 	void split(Box& b1, Box& b2);
 	bool rayHit(Ray r, float* t);
+	void settingSpheres(std::vector<Sphere> allSpheres);
 };
-
-#endif

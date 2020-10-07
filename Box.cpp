@@ -51,3 +51,11 @@ void Box::split(Box& b1, Box& b2) {
 		b2 = Box(Vector3(this->coord1.x, this->coord1.y, this->coord2.z / 2), this->coord2);
 	}
 }
+
+void Box::settingSpheres(std::vector<Sphere> allSpheres) {
+	for (int i = 0; i < allSpheres.size(); i++) {
+		if (allSpheres[i].position.x >= this->coord1.x && allSpheres[i].position.y >= this->coord1.y && allSpheres[i].position.z >= this->coord1.z && allSpheres[i].position.x <= this->coord2.x && allSpheres[i].position.y <= this->coord2.y && allSpheres[i].position.z <= this->coord2.z) {
+			spheres.push_back(allSpheres[i]);
+		}
+	}
+}

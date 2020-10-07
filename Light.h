@@ -1,8 +1,7 @@
+#pragma once
+
 #include "lib/vector.h"
 #include "color.h"
-
-#ifndef LIGHT_H
-#define LIGHT_H
 
 using namespace std;
 
@@ -17,5 +16,3 @@ public:
 
 	Color GetColor();
 };
-
-#endif
