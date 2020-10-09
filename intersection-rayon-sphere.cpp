@@ -210,11 +210,18 @@ void populateBoxes(Box* aBox) {
 	populateBoxes(aBox->childBox2);
 }
 
-Sphere findBox(Ray r, Box b) {
+Sphere* findBox(Ray r, Box* b) {
 	float distance;
-	if (b.rayHit(r, &distance)) {
-		findBox(r, *b.childBox1);
-		findBox(r, *b.childBox2);
+	if (!b->hasChildren()) {
+		cout << b->print() << "\n";
+		int indexSphere = hit_spheres(r, b->spheres, &distance);
+		if (indexSphere != -1) {
+			return &b->spheres[indexSphere];
+		}
+	}
+	if (b->hasChildren() && b->rayHit(r, &distance)) {
+		findBox(r, b->childBox1);
+		findBox(r, b->childBox2);
 	}
 }
 
@@ -258,6 +265,10 @@ int main() {
 			Vector3 point = Vector3(camera.position.x + x, camera.position.y + y, camera.position.z);
 			Ray r = Ray(point, (point - camera.origin).normalized());
 
+			Sphere* s = findBox(r, b);
+
+			if (s != NULL)
+				cout << s->position << " / " << s->radius << "\n";
 
 			/*for (int i = 0; i < nbRay; i++) {
 				Vector3 offset = Vector3(random() * 0.01f, random() * 0.01f, random() * 0.01f);
