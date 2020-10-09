@@ -50,7 +50,7 @@ int hit_spheres(Ray ray, std::vector<Sphere> spheres, float* distance) {
 	return closeSphereIndex;
 }
 
-Box* hit_boxes(Ray ray, Box b1, Box b2) {
+/*Box* hit_boxes(Ray ray, Box b1, Box b2) {
 	int closeCubeIndex = -1;
 	float minDistance = 99999;
 	float distance;
@@ -69,7 +69,8 @@ Box* hit_boxes(Ray ray, Box b1, Box b2) {
 	if (hitBox1) {
 		return &b1;
 	}
-}
+	return NULL;
+}*/
 
 void encodeOneStep(const char* filename, std::vector<unsigned char>& image, unsigned width, unsigned height) {
 	//Encode the image
@@ -170,7 +171,7 @@ Color manageLightReflection(Vector3 pointOrigin, Vector3 pointIntersection, std:
 	return colXY;
 }
 
-Box generateSpheres(Vector3 origin, float width, float height, int amountOfSpheres) {
+Box* generateSpheres(Vector3 origin, float width, float height, int amountOfSpheres) {
 	Vector3 minCoord = Vector3(width / 2 + origin.x, height / 2 + origin.y, 200);
 	Vector3 maxCoord = Vector3(-width / 2 + origin.x, -height / 2 + origin.y, 0);
 	for (int i = 0; i < amountOfSpheres; i++) {
@@ -189,30 +190,32 @@ Box generateSpheres(Vector3 origin, float width, float height, int amountOfSpher
 		maxCoord = Vector3::max(maxCoord, Vector3(x + radius, y + radius, z + radius));
 		spheres.push_back(Sphere(Vector3(x, y, z), radius, Color(R, G, B)));
 	}
-	return Box(minCoord, maxCoord);
-}
-void printBox(Box b) {
-	cout << "[" << b.spheres.size() << "]\t";
-	cout << "(" << b.coord1.x << ", " << b.coord1.y << ", " << b.coord1.z << ")";
-	cout << " / (" << b.coord2.x << ", " << b.coord2.y << ", " << b.coord2.z << ")\n";
+	return new Box(minCoord, maxCoord);
 }
 
-void populateBoxes(Box aBox) {
-	aBox.settingSpheres(spheres);
-	if (aBox.spheres.size() <= 5) {
-		//boxes.push_back(aBox);
+void populateBoxes(Box* aBox) {
+	aBox->settingSpheres(spheres);
+	if (aBox->spheres.size() <= 5) {
 		return;
 	}
 
-	Box b1 = aBox;
-	Box b2 = aBox;
-	aBox.split(b1, b2);
+	Box* b1 = new Box();
+	Box* b2 = new Box();
+	aBox->split(b1, b2);
 
-	aBox.childBox1 = &b1;
-	aBox.childBox2 = &b2;
+	aBox->childBox1 = b1;
+	aBox->childBox2 = b2;
 
-	populateBoxes(*aBox.childBox1);
-	populateBoxes(*aBox.childBox2);
+	populateBoxes(aBox->childBox1);
+	populateBoxes(aBox->childBox2);
+}
+
+Sphere findBox(Ray r, Box b) {
+	float distance;
+	if (b.rayHit(r, &distance)) {
+		findBox(r, *b.childBox1);
+		findBox(r, *b.childBox2);
+	}
 }
 
 
@@ -240,9 +243,8 @@ int main() {
 	spheres.push_back(Sphere(Vector3(800, 350, 300), 80, Color(255, 255, 0)));
 	*/
 
-	Box b = generateSpheres(camera.origin, camera.width, camera.height, 100);
+	Box *b = generateSpheres(camera.origin, camera.width, camera.height, 100);
 	populateBoxes(b);
-
 
 	image.resize(camera.width * camera.height * 4);
 
