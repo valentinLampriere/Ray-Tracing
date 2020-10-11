@@ -21,13 +21,13 @@ std::default_random_engine generator(10000);
 
 float random() {
 	std::uniform_real_distribution<> dist(-1, 1);
-	return dist(generator);
-	//return dist(e2); // Non-seeded
+	//return dist(generator);
+	return dist(e2); // Non-seeded
 }
 float random(float min, float max) {
 	std::uniform_real_distribution<> dist(min, max);
-	return dist(generator);
-	//return dist(e2); // Non-seeded
+	//return dist(generator);
+	return dist(e2); // Non-seeded
 }
 
 int hit_spheres(Ray ray, std::vector<Sphere> spheres, float* distance) {
@@ -134,14 +134,14 @@ Color manageLightReflection(Vector3 pointOrigin, Vector3 pointIntersection, std:
 	Color colXY = Color(0, 0, 0);
 
 	if (s.isMirror == false) {
-		int nbRay = 100;
+		int nbRay = 5;
 		for (Light& aLight : lightsSources) {
 
 			Color colorALight = Color();
 			for (int i = 0; i < nbRay; i++) {
 				Vector3 offset = Vector3(0, 0, 0);
 				if(nbRay > 1)
-					Vector3 offset = Vector3(random(), random(), random()) * aLight.position * 0.4f;
+					offset = Vector3(random(), random(), random()) * aLight.position * 0.4f;
 
 				colorALight = colorALight + calcLuminosityAtPoint(pointIntersection, s, aLight.position + offset, aLight.GetColor());
 			}
@@ -175,10 +175,8 @@ Box* generateSpheres(Vector3 origin, float width, float height, int amountOfSphe
 	Vector3 maxCoord = Vector3(-width / 2 + origin.x, -height / 2 + origin.y, 0);
 	for (int i = 0; i < amountOfSpheres; i++) {
 		float radius = random(20, 40);
-		//float x = random(-width/2 + origin.x, width/2 + origin.x);
-		//float y = random(-height/2 + origin.y, height/2 + origin.y);
-		float x = random(-width / 2 + origin.x, 0);
-		float y = random(-height/2 + origin.y, 0);
+		float x = random(-width/2 + origin.x, width/2 + origin.x);
+		float y = random(-height/2 + origin.y, height/2 + origin.y);
 		float z = random(radius * 2, 300);
 
 		float R = random(0, 255);
@@ -245,7 +243,7 @@ int main() {
 
 
 	// ADD SPHERES
-	/*
+	
 	spheres.push_back(Sphere(Vector3(512, 101024, 0), 100000, Color(255, 200, 0))); // Ground
 	spheres.push_back(Sphere(Vector3(101050, 512, 5000), 100000, Color(215, 205, 210))); // Wall right
 	spheres.push_back(Sphere(Vector3(512, 512, 101200), 100000, Color(215, 205, 210))); // Wall back
@@ -256,74 +254,30 @@ int main() {
 	spheres.push_back(Sphere(Vector3(350, 864, 300), 160, Color(0, 0, 255)));
 	spheres.push_back(Sphere(Vector3(650, 900, 150), 100, true));
 	spheres.push_back(Sphere(Vector3(800, 350, 300), 80, Color(255, 255, 0)));
-	*/
+	
 
-	Box *b = generateSpheres(camera.origin, camera.width, camera.height, 100);
-	populateBoxes(b);
+	//Box *b = generateSpheres(camera.origin, camera.width, camera.height, 20);
+	//populateBoxes(b);
 
 	image.resize(camera.width * camera.height * 4);
 
-	printScene(*b);
+	//printScene(*b);
 
 
 	for (unsigned x = 0; x < camera.width; x++) {
 		for (unsigned y = 0; y < camera.height; y++) {
 
 			int index = 4 * camera.width * y + 4 * x;
-			int nbRay = 100;
+			int nbRay = 10;
 			Color colXY = Color(0, 0, 0);
 
-			vector<pair<Box*, float>> boxes;
-			Vector3 point = Vector3(camera.position.x + x, camera.position.y + y, camera.position.z);
-			Ray r = Ray(point, (point - camera.origin).normalized());
-
-			findBoxes(r, b, &boxes);
-			
-			if (boxes.size() > 0) {
-				pair<Box*, float> closestBox = boxes[0];
-				float distanceFirstSphere;
-				Sphere* closestSphere = NULL;
-				for (int i = 0; i < boxes.size(); i++) {
-					if (closestBox.second < boxes[i].second) {
-						closestBox = boxes[i];
-						int closestSphereIndex = hit_spheres(r, closestBox.first->spheres, &distanceFirstSphere);
-						if (closestSphereIndex != -1) {
-							closestSphere = &closestBox.first->spheres[closestSphereIndex];
-						}
-					}
-				}
-				if (closestSphere != NULL) {
-					Vector3 ptIntersection = Vector3(distanceFirstSphere * r.direction.x + x + camera.position.x, distanceFirstSphere * r.direction.y + y + camera.position.y, distanceFirstSphere * r.direction.z + camera.position.z);
-					colXY = colXY + manageLightReflection(point, ptIntersection, closestBox.first->spheres, *closestSphere, index);
-				} else
-					colXY = colXY + Color(0, 0, 0);
-			} else
-				colXY = colXY + Color(0, 0, 0);
-			/*for (int i = 0; i < nbRay; i++) {
-				Vector3 offset = Vector3(random() * 0.01f, random() * 0.01f, random() * 0.01f);
-				Ray r = Ray(point + offset, (point + offset - camera.origin).normalized());
-
-				for (int i = 0; i < boxes.size(); i++) {
-					int indexCube = hit_cubes(r);
-					if (indexCube != -1) {
-						float distanceFirstSphere;
-						int closestSphereIndex = hit_spheres(r, boxes[i].spheres, &distanceFirstSphere);
-
-						if (closestSphereIndex != -1) { // There is an intersection with a sphere
-							Vector3 ptIntersection = Vector3(distanceFirstSphere * r.direction.x + x + camera.position.x, distanceFirstSphere * r.direction.y + y + camera.position.y, distanceFirstSphere * r.direction.z + camera.position.z);
-							colXY = colXY + manageLightReflection(point, ptIntersection, boxes[i].spheres, boxes[i].spheres[closestSphereIndex], index);
-						} else
-							colXY = colXY + Color(0, 0, 0);
-					} else
-						colXY = colXY + Color(0, 0, 0);
-				}
-			}*/
-			
-			/*for (int i = 0; i < nbRay; i++) {
-				Vector3 offset = Vector3(random() * 0.01f, random() * 0.01f, random() * 0.01f);
+			for (int i = 0; i < nbRay; i++) {
+				Vector3 offset = Vector3(0, 0, 0);
+				if (nbRay > 1)
+					offset = Vector3(random(), random(), random());
 				Vector3 point = Vector3(camera.position.x + x, camera.position.y + y, camera.position.z);
 
-				Ray r = Ray(point + offset, (point + offset - camera.origin).normalized());
+				Ray r = Ray(point, (point + offset - camera.origin).normalized());
 
 				float distanceFirstSphere;
 				int closestSphereIndex = hit_spheres(r, spheres, &distanceFirstSphere);
@@ -331,10 +285,12 @@ int main() {
 				if (closestSphereIndex != -1) { // There is an intersection with a sphere
 					Vector3 ptIntersection = Vector3(distanceFirstSphere * r.direction.x + x + camera.position.x, distanceFirstSphere * r.direction.y + y + camera.position.y, distanceFirstSphere * r.direction.z + camera.position.z);
 					colXY = colXY + manageLightReflection(point, ptIntersection, spheres, spheres[closestSphereIndex], index);
+				} else {
+					colXY = colXY + Color(0, 0, 0);
 				}
-			}*/
+			}
 
-			//colXY = colXY / nbRay;
+			colXY = colXY / nbRay;
 
 			setColor(image, index, colXY.Clamp255());
 		}

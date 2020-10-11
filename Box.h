@@ -11,7 +11,7 @@ public:
 	Vector3 coord1, coord2;
 	Box* childBox1;
 	Box* childBox2;
-	std::vector<Sphere> spheres;
+	vector<Sphere> spheres;
 
 	Box();
 	Box(Vector3 c1, Vector3 c2);
