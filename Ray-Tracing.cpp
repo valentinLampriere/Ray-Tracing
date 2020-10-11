@@ -303,6 +303,21 @@ int main() {
 
 				Ray r = Ray(point, (point + offset - camera.origin).normalized());
 
+				//(lightColor * std::abs(N.dot(dir))) / (distance2 * M_PI)
+				// TRIANGLES
+				float distanceFirstTriangle;
+				int closestTriangleIndex = hit_spheres(r, spheres, &distanceFirstTriangle);
+
+				if (closestTriangleIndex != -1) { // There is an intersection with a triangle
+					Vector3 ptIntersection = Vector3(distanceFirstTriangle * r.direction.x + x + camera.position.x, distanceFirstTriangle * r.direction.y + y + camera.position.y, distanceFirstTriangle * r.direction.z + camera.position.z);
+
+					Triangle t = triangles[closestTriangleIndex];
+					Vector3 normal = Vector3::cross(t.point2 - t.point1, t.point3 - t.point1);
+
+
+				} else {
+					colXY = colXY + Color(0, 0, 0);
+				}
 
 				// SPHERES
 				float distanceFirstSphere;
