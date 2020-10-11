@@ -2,6 +2,7 @@
 #include <optional>
 #include "Sphere.h"
 #include "Box.h"
+#include "Triangle.h"
 #include "Ray.h"
 #include "Light.h"
 #include "Camera.h"
@@ -11,6 +12,7 @@
 #include <math.h>
 
 std::vector<Sphere> spheres;
+std::vector<Triangle> triangles;
 std::vector<Light> lightsSources;
 
 std::vector<unsigned char> image;
@@ -47,6 +49,25 @@ int hit_spheres(Ray ray, std::vector<Sphere> spheres, float* distance) {
 		}
 	}
 	return closeSphereIndex;
+}
+
+int hit_triangles(Ray ray, vector<Triangle> triangles, float* distanceFirstTriangle) {
+	int closeTriangleIndex = -1;
+	for (int i = 0; i < triangles.size(); i++) {
+		float d;
+		if (triangles[i].rayHit(ray, &d)) {
+			if (closeTriangleIndex == -1) {
+				closeTriangleIndex = i;
+				*distanceFirstTriangle = d;
+			} else {
+				if (d < *distanceFirstTriangle) {
+					closeTriangleIndex = i;
+					*distanceFirstTriangle = d;
+				}
+			}
+		}
+	}
+	return closeTriangleIndex;
 }
 
 /*Box* hit_boxes(Ray ray, Box b1, Box b2) {
@@ -244,7 +265,7 @@ int main() {
 
 	// ADD SPHERES
 	
-	spheres.push_back(Sphere(Vector3(512, 101024, 0), 100000, Color(255, 200, 0))); // Ground
+	/*spheres.push_back(Sphere(Vector3(512, 101024, 0), 100000, Color(255, 200, 0))); // Ground
 	spheres.push_back(Sphere(Vector3(101050, 512, 5000), 100000, Color(215, 205, 210))); // Wall right
 	spheres.push_back(Sphere(Vector3(512, 512, 101200), 100000, Color(215, 205, 210))); // Wall back
 	
@@ -253,11 +274,14 @@ int main() {
 	spheres.push_back(Sphere(Vector3(750, 864, 800), 160, Color(0, 255, 0)));
 	spheres.push_back(Sphere(Vector3(350, 864, 300), 160, Color(0, 0, 255)));
 	spheres.push_back(Sphere(Vector3(650, 900, 150), 100, true));
-	spheres.push_back(Sphere(Vector3(800, 350, 300), 80, Color(255, 255, 0)));
-	
+	spheres.push_back(Sphere(Vector3(800, 350, 300), 80, Color(255, 255, 0)));*/
 
 	//Box *b = generateSpheres(camera.origin, camera.width, camera.height, 20);
 	//populateBoxes(b);
+
+	// ADD TRIANGLES
+
+	triangles.push_back(Triangle(Vector3(500, 500, 50), Vector3(550, 500, 50), Vector3(525, 550, 50)));
 
 	image.resize(camera.width * camera.height * 4);
 
@@ -279,6 +303,8 @@ int main() {
 
 				Ray r = Ray(point, (point + offset - camera.origin).normalized());
 
+
+				// SPHERES
 				float distanceFirstSphere;
 				int closestSphereIndex = hit_spheres(r, spheres, &distanceFirstSphere);
 
