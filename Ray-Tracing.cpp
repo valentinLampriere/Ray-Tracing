@@ -234,6 +234,7 @@ void printScene(Box box, int depth = 0) {
 }
 
 int main() {
+
 	// ADD A CAMERA
 	Camera camera = Camera(512, 512, 500, Vector3(256,256,0));
 

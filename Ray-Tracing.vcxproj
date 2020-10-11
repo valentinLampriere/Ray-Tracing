@@ -142,10 +142,10 @@
     <ClCompile Include="Box.cpp" />
     <ClCompile Include="Camera.cpp" />
     <ClCompile Include="Color.cpp" />
-    <ClCompile Include="intersection-rayon-sphere.cpp" />
     <ClCompile Include="lib\lodepng.cpp" />
     <ClCompile Include="lib\vector.cpp" />
     <ClCompile Include="Light.cpp" />
+    <ClCompile Include="Ray-Tracing.cpp" />
     <ClCompile Include="Ray.cpp" />
     <ClCompile Include="Sphere.cpp" />
   </ItemGroup>
