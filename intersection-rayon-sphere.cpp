@@ -12,7 +12,6 @@
 
 std::vector<Sphere> spheres;
 std::vector<Light> lightsSources;
-//std::vector<Box> boxes;
 
 std::vector<unsigned char> image;
 
@@ -23,12 +22,12 @@ std::default_random_engine generator(10000);
 float random() {
 	std::uniform_real_distribution<> dist(-1, 1);
 	return dist(generator);
-	//return dist(e2); -- Non-seeded
+	//return dist(e2); // Non-seeded
 }
 float random(float min, float max) {
 	std::uniform_real_distribution<> dist(min, max);
 	return dist(generator);
-	//return dist(e2); -- Non-seeded
+	//return dist(e2); // Non-seeded
 }
 
 int hit_spheres(Ray ray, std::vector<Sphere> spheres, float* distance) {
@@ -172,7 +171,7 @@ Color manageLightReflection(Vector3 pointOrigin, Vector3 pointIntersection, std:
 }
 
 Box* generateSpheres(Vector3 origin, float width, float height, int amountOfSpheres) {
-	Vector3 minCoord = Vector3(width / 2 + origin.x, height / 2 + origin.y, 200);
+	Vector3 minCoord = Vector3(width / 2 + origin.x, height / 2 + origin.y, 500);
 	Vector3 maxCoord = Vector3(-width / 2 + origin.x, -height / 2 + origin.y, 0);
 	for (int i = 0; i < amountOfSpheres; i++) {
 		float radius = random(20, 40);
@@ -210,21 +209,29 @@ void populateBoxes(Box* aBox) {
 	populateBoxes(aBox->childBox2);
 }
 
-Sphere* findBox(Ray r, Box* b) {
+void findBoxes(Ray r, Box* b, vector<pair<Box*, float>>* boxes) {
 	float distance;
 	if (!b->hasChildren()) {
-		cout << b->print() << "\n";
-		int indexSphere = hit_spheres(r, b->spheres, &distance);
-		if (indexSphere != -1) {
-			return &b->spheres[indexSphere];
+		if (b->spheres.size() > 0) {
+			boxes->push_back(make_pair(b, distance));
 		}
 	}
 	if (b->hasChildren() && b->rayHit(r, &distance)) {
-		findBox(r, b->childBox1);
-		findBox(r, b->childBox2);
+		findBoxes(r, b->childBox1, boxes);
+		findBoxes(r, b->childBox2, boxes);
 	}
 }
 
+void printScene(Box box, int depth = 0) {
+	for (int i = 0; i < depth; i++) {
+		cout << " | ";
+	}
+	box.print();
+	if (box.hasChildren()) {
+		printScene(*box.childBox1, depth + 1);
+		printScene(*box.childBox2, depth + 1);
+	}
+}
 
 int main() {
 	// ADD A CAMERA
@@ -255,6 +262,9 @@ int main() {
 
 	image.resize(camera.width * camera.height * 4);
 
+	printScene(*b);
+
+
 	for (unsigned x = 0; x < camera.width; x++) {
 		for (unsigned y = 0; y < camera.height; y++) {
 
@@ -262,14 +272,32 @@ int main() {
 			int nbRay = 100;
 			Color colXY = Color(0, 0, 0);
 
+			vector<pair<Box*, float>> boxes;
 			Vector3 point = Vector3(camera.position.x + x, camera.position.y + y, camera.position.z);
 			Ray r = Ray(point, (point - camera.origin).normalized());
 
-			Sphere* s = findBox(r, b);
-
-			if (s != NULL)
-				cout << s->position << " / " << s->radius << "\n";
-
+			findBoxes(r, b, &boxes);
+			
+			if (boxes.size() > 0) {
+				pair<Box*, float> closestBox = boxes[0];
+				float distanceFirstSphere;
+				Sphere* closestSphere = NULL;
+				for (int i = 0; i < boxes.size(); i++) {
+					if (closestBox.second < boxes[i].second) {
+						closestBox = boxes[i];
+						int closestSphereIndex = hit_spheres(r, closestBox.first->spheres, &distanceFirstSphere);
+						if (closestSphereIndex != -1) {
+							closestSphere = &closestBox.first->spheres[closestSphereIndex];
+						}
+					}
+				}
+				if (closestSphere != NULL) {
+					Vector3 ptIntersection = Vector3(distanceFirstSphere * r.direction.x + x + camera.position.x, distanceFirstSphere * r.direction.y + y + camera.position.y, distanceFirstSphere * r.direction.z + camera.position.z);
+					colXY = colXY + manageLightReflection(point, ptIntersection, closestBox.first->spheres, *closestSphere, index);
+				} else
+					colXY = colXY + Color(0, 0, 0);
+			} else
+				colXY = colXY + Color(0, 0, 0);
 			/*for (int i = 0; i < nbRay; i++) {
 				Vector3 offset = Vector3(random() * 0.01f, random() * 0.01f, random() * 0.01f);
 				Ray r = Ray(point + offset, (point + offset - camera.origin).normalized());
