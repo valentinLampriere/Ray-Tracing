@@ -63,16 +63,30 @@ void Box::split(Box* b1, Box* b2) {
 }
 
 void Box::settingSpheres(std::vector<Sphere> allSpheres) {
-	for (int i = 0; i < allSpheres.size(); i++) {
-		if (allSpheres[i].position.x >= this->coord1.x &&
-			allSpheres[i].position.y >= this->coord1.y &&
-			allSpheres[i].position.z >= this->coord1.z &&
-			allSpheres[i].position.x <= this->coord2.x &&
-			allSpheres[i].position.y <= this->coord2.y &&
-			allSpheres[i].position.z <= this->coord2.z) {
+	/*for (int i = 0; i < allSpheres.size(); i++) {
+		Sphere s = allSpheres[i];
+		if (s.position.x  >= this->coord1.x &&
+			s.position.y  >= this->coord1.y &&
+			s.position.z  >= this->coord1.z &&
+			s.position.x  <= this->coord2.x &&
+			s.position.y  <= this->coord2.y &&
+			s.position.z  <= this->coord2.z) {
 			this->spheres.push_back(allSpheres[i]);
 		}
-	}
+	}*/
+	for (int i = 0; i < allSpheres.size(); i++) {
+		Sphere s = allSpheres[i];
+		float dist_squared = s.radius * s.radius;
+		if (s.position.x < this->coord1.x) dist_squared -= (s.position.x - this->coord1.x) * (s.position.x - this->coord1.x);
+		else if (s.position.x > this->coord2.x) dist_squared -= (s.position.x - this->coord2.x) * (s.position.x - this->coord2.x);
+		if (s.position.y < this->coord1.y) dist_squared -= (s.position.y - this->coord1.y) * (s.position.y - this->coord1.y);
+		else if (s.position.y > this->coord2.y) dist_squared -= (s.position.y - this->coord2.y) * (s.position.y - this->coord2.y);
+		if (s.position.z < this->coord1.z) dist_squared -= (s.position.z - this->coord1.z) * (s.position.z - this->coord1.z);
+		else if (s.position.z > this->coord2.z) dist_squared -= (s.position.z - this->coord2.z) * (s.position.z - this->coord2.z);
+
+		if(dist_squared > 0)
+			this->spheres.push_back(allSpheres[i]);
+	}	
 }
 bool Box::hasChildren() {
 	return childBox1 != NULL && childBox2 != NULL;
