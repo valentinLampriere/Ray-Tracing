@@ -1,3 +1,3 @@
 # Ray-Tracing
 
-[result](/image.png )
+![Result](/image.png)
