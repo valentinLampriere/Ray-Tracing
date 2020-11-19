@@ -63,17 +63,6 @@ void Box::split(Box* b1, Box* b2) {
 }
 
 void Box::settingSpheres(std::vector<Sphere> allSpheres) {
-	/*for (int i = 0; i < allSpheres.size(); i++) {
-		Sphere s = allSpheres[i];
-		if (s.position.x  >= this->coord1.x &&
-			s.position.y  >= this->coord1.y &&
-			s.position.z  >= this->coord1.z &&
-			s.position.x  <= this->coord2.x &&
-			s.position.y  <= this->coord2.y &&
-			s.position.z  <= this->coord2.z) {
-			this->spheres.push_back(allSpheres[i]);
-		}
-	}*/
 	for (int i = 0; i < allSpheres.size(); i++) {
 		Sphere s = allSpheres[i];
 		float dist_squared = s.radius * s.radius;
