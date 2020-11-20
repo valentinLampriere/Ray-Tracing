@@ -43,26 +43,20 @@ public:
 	}
 	Vector3 normalized();
 
-	static Vector3 min(Vector3 v1, Vector3 v2) {
+	static Vector3 mini(Vector3 v1, Vector3 v2) {
 		float x = std::min(v1.x, v2.x);
 		float y = std::min(v1.y, v2.y);
 		float z = std::min(v1.z, v2.z);
-		//if (v1.lengthSquare() <= v2.lengthSquare())
-		//	return v1;
-		//return v2;
 		return Vector3(x, y, z);
 	}
-	Vector3 min(const Vector3 v);
-	static Vector3 max(Vector3 v1, Vector3 v2) {
+	Vector3 mini(const Vector3 v);
+	static Vector3 maxi(Vector3 v1, Vector3 v2) {
 		float x = std::max(v1.x, v2.x);
 		float y = std::max(v1.y, v2.y);
 		float z = std::max(v1.z, v2.z);
-		//if (v1.lengthSquare() <= v2.lengthSquare())
-		//	return v2;
-		//return v1;
 		return Vector3(x, y, z);
 	}
-	Vector3 max(const Vector3 v);
+	Vector3 maxi(const Vector3 v);
 	Vector3 operator+(const Vector3 v);
 	Vector3 operator+(float f);
 	Vector3 operator-(const Vector3 v);

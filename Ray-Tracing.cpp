@@ -1,11 +1,16 @@
 #include <iostream>
 #include <optional>
+
+#include "lib/vector.h"
 #include "Sphere.h"
 #include "Box.h"
 #include "Ray.h"
 #include "Light.h"
 #include "Camera.h"
 #include "lib/lodepng.h"
+#include <string> 
+#include <Windows.h>
+
 
 #define _USE_MATH_DEFINES
 #include <math.h>
@@ -17,7 +22,9 @@ std::vector<unsigned char> image;
 
 std::random_device rd;
 std::mt19937 e2(rd());
-std::default_random_engine generator(10000);
+std::default_random_engine generator(11000);
+
+Color background = Color(175, 200, 225);
 
 float random() {
 	std::uniform_real_distribution<> dist(-1, 1);
@@ -119,7 +126,7 @@ Color reflectRay(Ray ray, std::vector<Sphere> spheres, Sphere sphere, Vector3 po
 	float distance;
 	int indexSphere = hit_spheres(newRay, spheres , &distance);
 	if (indexSphere == -1) {
-		return Color(0, 0, 0);
+		return background;
 	} else {
 		if (spheres[indexSphere].isMirror) {
 			return reflectRay(newRay, spheres, spheres[indexSphere], point + directionNewRay * distance + directionNewRay, index, depth + 1);
@@ -175,16 +182,36 @@ Box* generateSpheres(Vector3 origin, float width, float height, float depth, int
 	Vector3 maxCoord = Vector3(-width / 2 + origin.x, -height / 2 + origin.y, 0);
 	for (int i = 0; i < amountOfSpheres; i++) {
 		float radius = random(10, 33);
-		float x = random(-width/2 + origin.x, width/2 + origin.x);
-		float y = random(-height/2 + origin.y, height/2 + origin.y);
+		float x = random(-width / 2 + origin.x, width / 2 + origin.x);
+		float y = random(-height / 2 + origin.y, height / 2 + origin.y);
 		float z = random(radius * 2, depth);
 
 		float R = random(0, 255);
 		float G = random(0, 255);
 		float B = random(0, 255);
 
-		minCoord = Vector3::min(minCoord, Vector3(x - radius, y - radius, z - radius));
-		maxCoord = Vector3::max(maxCoord, Vector3(x + radius, y + radius, z + radius));
+		minCoord = Vector3::mini(minCoord, Vector3(x - radius, y - radius, z - radius));
+		maxCoord = Vector3::maxi(maxCoord, Vector3(x + radius, y + radius, z + radius));
+		spheres.push_back(Sphere(Vector3(x, y, z), radius, Color(R, G, B)));
+	}
+	return new Box(minCoord, maxCoord);
+}
+Box* generateSpheresGround(Vector3 center, float size, int amountOfSpheres) {
+	Vector3 minCoord = Vector3(size / 2 + center.x, size / 2 + center.y, size);
+	Vector3 maxCoord = Vector3(-size / 2 + center.x, -size / 2 + center.y, -size);
+	for (int i = 0; i <= amountOfSpheres; i++) {
+		float radius = random(15, 50);
+
+		float x = random(-size / 2 + center.x, size / 2 + center.x);
+		float y = center.y - radius;
+		float z = random(radius * 2, size);
+
+		float R = random(0, 255);
+		float G = random(0, 255);
+		float B = random(0, 255);
+		
+		minCoord = Vector3::mini(minCoord, Vector3(x, y, z));
+		maxCoord = Vector3::maxi(maxCoord, Vector3(x, y, z));
 		spheres.push_back(Sphere(Vector3(x, y, z), radius, Color(R, G, B)));
 	}
 	return new Box(minCoord, maxCoord);
@@ -233,37 +260,49 @@ void printScene(Box box, int depth = 0) {
 }
 
 int main() {
+
 	// ADD A CAMERA
-	Camera camera = Camera(1024, 1024, 1000, Vector3(256,256,0));
+	Camera camera = Camera(1024, 512, 2000, Vector3(512,512+256,0));
 
 	// ADD LIGHTS
-	lightsSources.push_back(Light(Vector3(-200, 200, -500), Color(255, 255, 255), 1500000, 200.0f));
-	lightsSources.push_back(Light(Vector3(1500, -100, -250), Color(240, 80, 0), 1000000, 50.0f));
-	lightsSources.push_back(Light(Vector3(512, 1000, 1200), Color(255, 255, 255), 5000000, 200.0f));
+	lightsSources.push_back(Light(Vector3(-200, 250, -333), Color(255, 255, 255), 2000000, 100.0f));
+	lightsSources.push_back(Light(Vector3(1224, 0, -250), Color(240, 255, 235), 1750000, 50.0f));
+	lightsSources.push_back(Light(Vector3(-50, 100, 750), Color(255, 255, 255), 1000000, 300.0f));
 
 	// ADD SPHERES
-	//spheres.push_back(Sphere(Vector3(512, 101024, 0), 100000, Color(255, 200, 0))); // Ground
+	spheres.push_back(Sphere(Vector3(512, 1001324, 1000), 1000000, Color(255, 255, 255))); // Ground
 	//spheres.push_back(Sphere(Vector3(101050, 512, 5000), 100000, Color(215, 205, 210))); // Wall right
 	//spheres.push_back(Sphere(Vector3(512, 512, 101200), 100000, Color(215, 205, 210))); // Wall back
-	
-	/*spheres.push_back(Sphere(Vector3(512, 512, 350), 200, true));
-	spheres.push_back(Sphere(Vector3(600, 512, -1050), 1000, true));
+
+	//spheres.push_back(Sphere(Vector3(512, 1000, 1000), 200, true));
+	spheres.push_back(Sphere(Vector3(1024, 1324 - 100, 1000), 200, true));
+	/*spheres.push_back(Sphere(Vector3(600, 512, -1050), 1000, true));
 	spheres.push_back(Sphere(Vector3(750, 864, 800), 160, Color(0, 255, 0)));
 	spheres.push_back(Sphere(Vector3(350, 864, 300), 160, Color(0, 0, 255)));
 	spheres.push_back(Sphere(Vector3(650, 900, 150), 100, true));
 	spheres.push_back(Sphere(Vector3(800, 350, 300), 80, Color(255, 255, 0)));*/
-	
-	Box *b = generateSpheres(camera.origin, camera.width, camera.height, std::max(camera.width, camera.height), 500);
-	populateBoxes(b, spheres);
+	//Box* b = generateSpheres(camera.origin, camera.width, camera.height, std::max(camera.width, camera.height), 500);
+	//Box* b = generateSpheresGround(Vector3(1024, 1324, 1000), 2500, 100);
+	//populateBoxes(b, spheres);
 
 	image.resize(camera.width * camera.height * 4);
 
 	//printScene(*b);
 
+	int nBarWidth = 100;
+
+	wchar_t* screen = new wchar_t[nBarWidth];
+	for (int i = 0; i < nBarWidth; i++) {
+		screen[i] = L' ';
+	}
+	HANDLE hConsole = CreateConsoleScreenBuffer(GENERIC_READ | GENERIC_WRITE, 0, NULL, CONSOLE_TEXTMODE_BUFFER, NULL);
+	SetConsoleActiveScreenBuffer(hConsole);
+	DWORD dwBytesWritten = 0;
+
 	for (unsigned x = 0; x < camera.width; x++) {
 		for (unsigned y = 0; y < camera.height; y++) {
 			int index = 4 * camera.width * y + 4 * x;
-			int nbRay = 25;
+			int nbRay = 1;
 			Color colXY = Color(0, 0, 0);
 
 			for (int i = 0; i < nbRay; i++) {
@@ -275,10 +314,10 @@ int main() {
 				Ray r = Ray(point, (point + offset - camera.origin).normalized());
 
 				/* WITH BOXES */
-				vector<pair<Box*, float>> boxes;
+				/*vector<pair<Box*, float>> boxes;
 				findBoxes(r, b, &boxes);
 
-				Color colXY_box = Color(0, 0, 0);
+				Color colXY_box = background;
 				float minDistance = 99999;
 
 				for (int i = 0; i < boxes.size(); i++) {
@@ -294,24 +333,41 @@ int main() {
 						minDistance = distanceBox;
 					}
 				}
-				colXY = colXY + colXY_box;
+				colXY = colXY + colXY_box;*/
 				
 
 				/* WITHOUT BOXES */
-				/*float distanceFirstSphere;
+				float distanceFirstSphere;
 				int closestSphereIndex = hit_spheres(r, spheres, &distanceFirstSphere);
 
 				if (closestSphereIndex != -1) { // There is an intersection with a sphere
 					Vector3 ptIntersection = Vector3(distanceFirstSphere * r.direction.x + x + camera.position.x, distanceFirstSphere * r.direction.y + y + camera.position.y, distanceFirstSphere * r.direction.z + camera.position.z);
 					colXY = colXY + manageLightReflection(point, ptIntersection, spheres, spheres[closestSphereIndex], index);
 				} else {
-					colXY = colXY + Color(0, 0, 0);
-				}*/
+					colXY = colXY + background;
+				}
 			}
 			colXY = colXY / nbRay;
 
 			setColor(image, index, colXY.Clamp255());
 		}
+		float completion = (float)x / (float)camera.width;
+		for (int x = 0; x < nBarWidth - 3; x++) {
+			if (x == 0)
+				screen[x] = '[';
+			else if (x == nBarWidth - 3 - 1) {
+				screen[x] = ']';
+				screen[x + 1] = to_string((int)(completion * 100))[0];
+				screen[x + 2] = to_string((int)(completion * 100))[1];
+				screen[x + 3] = '%';
+			}
+			else if (completion * nBarWidth - 3 > x)
+				screen[x] = '=';
+			else if (completion * nBarWidth - 3 > x)
+				screen[x] = ' ';
+		}
+		WriteConsoleOutputCharacter(hConsole, screen, nBarWidth, { 0, 0 }, &dwBytesWritten);
+
 	}
 
 	encodeOneStep("image.png", image, camera.width, camera.height);
