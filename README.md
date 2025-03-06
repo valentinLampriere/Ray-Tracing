@@ -1,5 +1,5 @@
 # Ray-Tracing
 
-Ray-Tracing engine create during a university class. 
+Here's a Ray-Tracing engine created during a university class!
 
 ![Result](/image__1000.png)
